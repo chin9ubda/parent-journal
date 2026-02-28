@@ -230,12 +230,16 @@ export default function App(){
 
   return (<div>{Header}{main}{modalOpen && (
       <div>
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.45)',backdropFilter:'blur(2px)',WebkitBackdropFilter:'blur(2px)'}} onClick={()=>{ history.back(); }}></div>
-        <div style={{position:'fixed',left:'50%',top:84,transform:'translateX(-50%)',width:'min(920px,95%)',zIndex:3000,boxShadow:'0 20px 60px rgba(0,0,0,0.4)',maxHeight:'calc(100vh - 120px)',overflowY:'auto',WebkitOverflowScrolling:'touch'}} onClick={e=>e.stopPropagation()}>
-          <div style={{background:'#fff',borderRadius:12,overflow:'hidden'}}>
-            <Editor token={token} editId={modalEditId} initialDate={modalDate} onDone={(eid)=>{ history.back(); setModalOpen(false); setModalEditId(null); setModalDate(null); if(eid){ history.pushState({view:'detail',id:eid},'',undefined); setView('detail'); /* force reload detail by resetting id briefly */ setViewId(null); setTimeout(()=>setViewId(eid),50) } else { setView('timeline'); setViewId(null); } }} />
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.45)',backdropFilter:'blur(2px)',WebkitBackdropFilter:'blur(2px)'}} onClick={()=>{ history.back(); setModalFromCalendar(false); }}></div>
+        { modalFromCalendar && entriesByDate && entriesByDate[modalDate] && entriesByDate[modalDate].length>0 ? (
+          <ListModal items={entriesByDate[modalDate]} date={modalDate} onClose={()=>{ history.back(); setModalFromCalendar(false); }} onOpenEntry={(id)=>{ history.pushState({view:'detail',id},'',undefined); setView('detail'); setViewId(id); setModalOpen(false); setModalFromCalendar(false); }} onNew={()=>{ setModalEditId(null); /* open editor for this date */ setModalFromCalendar(true); setModalOpen(true); }} />
+        ) : (
+          <div style={{position:'fixed',left:'50%',top:84,transform:'translateX(-50%)',width:'min(920px,95%)',zIndex:3000,boxShadow:'0 20px 60px rgba(0,0,0,0.4)'}} onClick={e=>e.stopPropagation()}>
+            <div style={{background:'#fff',borderRadius:12,overflow:'hidden'}}>
+              <Editor token={token} editId={modalEditId} initialDate={modalDate} onDone={(eid)=>{ history.back(); setModalOpen(false); setModalEditId(null); setModalDate(null); setModalFromCalendar(false); if(eid){ history.pushState({view:'detail',id:eid},'',undefined); setView('detail'); setViewId(eid); } else { setView('timeline'); setViewId(null); } }} />
+            </div>
           </div>
-        </div>
+        ) }
       </div>
     )} 
   </div>)
