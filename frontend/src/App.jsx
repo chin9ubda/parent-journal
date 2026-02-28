@@ -175,7 +175,7 @@ function CalendarView({token, onOpenDate}){
             {cell.count>0 && (<div style={{position:'absolute',left:8,bottom:8,background:'#FFEEF2',color:'#FF6B81',padding:'4px 6px',borderRadius:12,fontSize:12}}>{cell.count}개</div>)}
           </>) : null}
         </div>
-      ))
+      ))}
     </div>
     </div>
   </div>)
@@ -217,6 +217,6 @@ export default function App(){
   else if(view==='detail') main = <Detail token={token} id={viewId} onBack={()=>{ history.back(); }} onEdit={(id)=>{ setModalEditId(id); setModalOpen(true); history.pushState({modal:true,modalId:id},'',undefined); }} />
   else if(view==='calendar') main = <CalendarView token={token} onOpenDate={(d)=>{ setModalEditId(null); setModalDate(d); setModalOpen(true); history.pushState({modal:true,modalId:null, modalDate:d},'',undefined); }} />
 
-  return (<div><>{main}{modalOpen && (<div><div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.45)',backdropFilter:'blur(2px)',WebkitBackdropFilter:'blur(2px)'}} onClick={()=>{ history.back(); }}></div><div style={{position:'fixed',left:'50%',top:'50%',transform:'translate(-50%,-50%)',width:'min(920px,95%)',zIndex:3000,boxShadow:'0 20px 60px rgba(0,0,0,0.4)'}} onClick={e=>e.stopPropagation()}><div style={{background:'#fff',borderRadius:12,overflow:'hidden'}}><Editor token={token} editId={modalEditId} initialDate={modalDate} onDone={(eid)=>{ history.back(); setModalOpen(false); setModalEditId(null); setModalDate(null); if(eid){ history.pushState({view:'detail',id:eid},'',undefined); setView('detail'); /* force reload detail by resetting id briefly */ setViewId(null); setTimeout(()=>setViewId(eid),50) } else { setView('timeline'); setViewId(null); } }} /></div></div></div>)} </>
+  return (<div>{Header}{main}{modalOpen && (<div><div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.45)',backdropFilter:'blur(2px)',WebkitBackdropFilter:'blur(2px)'}} onClick={()=>{ history.back(); }}></div><div style={{position:'fixed',left:'50%',top:'50%',transform:'translate(-50%,-50%)',width:'min(920px,95%)',zIndex:3000,boxShadow:'0 20px 60px rgba(0,0,0,0.4)'}} onClick={e=>e.stopPropagation()}><div style={{background:'#fff',borderRadius:12,overflow:'hidden'}}><Editor token={token} editId={modalEditId} initialDate={modalDate} onDone={(eid)=>{ history.back(); setModalOpen(false); setModalEditId(null); setModalDate(null); if(eid){ history.pushState({view:'detail',id:eid},'',undefined); setView('detail'); /* force reload detail by resetting id briefly */ setViewId(null); setTimeout(()=>setViewId(eid),50) } else { setView('timeline'); setViewId(null); } }} /></div></div></div>)} </>
   </div>)
  }
