@@ -52,9 +52,8 @@ function Timeline({token, onView, onNew}){
   useEffect(()=>{ if(token) fetch() },[token])
   async function fetch(){ const r=await axios.get('/api/entries',{params:{token}}); setEntries(r.data)}
   return (<div style={{padding:20, fontFamily:'Noto Sans KR, Arial'}}>
-    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+    <div style={{display:'flex', justifyContent:'flex-start', alignItems:'center'}}>
       <h1 style={{margin:0, color:'#FF6B81'}}>타임라인</h1>
-      <div><button onClick={onNew} style={{background:'#FFD8E0', border:'none', padding:'8px 12px', borderRadius:12, cursor:'pointer'}}>새로운 기록</button></div>
     </div>
     <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(240px,1fr))', gap:16, marginTop:16}}>
       {entries.map(e=> (
