@@ -187,6 +187,18 @@ function CalendarView({token, onOpenDate}){
 }
 
 export default function App(){
+  // modalFromCalendar: when true, header will be hidden while modal is open
+  const [modalFromCalendar,setModalFromCalendar]=useState(false)
+
+  function ListModal({items, date, onClose, onOpenEntry, onNew}){
+    return (<div style={{position:'fixed',left:'50%',top:84,transform:'translateX(-50%)',width:'min(560px,95%)',zIndex:3000,background:'#fff',borderRadius:12,boxShadow:'0 20px 60px rgba(0,0,0,0.4)'}} onClick={e=>e.stopPropagation()}>
+      <div style={{padding:16}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}><div style={{fontWeight:700}}>{date}에 작성된 기록</div><div><button onClick={onNew} style={{background:'#FFD8E0',border:'none',padding:'6px 10px',borderRadius:8}}>새로운 기록</button></div></div>
+        <div style={{marginTop:12,display:'grid',gap:8}}>{items.map(it=>(<div key={it.id} style={{padding:12,borderRadius:10,background:'#fafafa',cursor:'pointer'}} onClick={()=>onOpenEntry(it.id)}><div style={{color:'#999',fontSize:12}}>{it.date}</div><div style={{fontSize:14,color:'#333'}}>{it.body.slice(0,120)}</div></div>))}</div>
+      </div>
+    </div>)
+  }
+
   const [token,setToken]=useState(localStorage.getItem('pj_token'))
   const [role,setRole]=useState(localStorage.getItem('pj_role'))
   const [view,setView]=useState('timeline')
@@ -217,10 +229,10 @@ export default function App(){
   function onLogin(t,r,auto){ setToken(t); setRole(r); if(auto){ localStorage.setItem('pj_token',t); localStorage.setItem('pj_role',r)} }
   if(!token) return <Login onLogin={onLogin} />
   let main = null
-  const Header = (<div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:16,position:'sticky',top:0,background:'#fff',zIndex:200}}><div style={{fontSize:20,color:'#FF6B81'}}>육아 일기</div><div><button onClick={()=>setView('timeline')} style={{marginRight:8}}>타임라인</button><button onClick={()=>setView('calendar')}>캘린더</button><button onClick={()=>{ setModalEditId(null); setModalOpen(true); history.pushState({modal:true,modalId:null},'',undefined); }} style={{marginLeft:12,background:'#FFD8E0', border:'none', padding:'8px 10px', borderRadius:10}}>새로운 기록</button></div></div>)
+  const Header = (<div style={{display:(modalOpen && modalFromCalendar)?'none':'flex',justifyContent:'space-between',alignItems:'center',padding:16,position:'sticky',top:0,background:'#fff',zIndex:200}}><div style={{fontSize:20,color:'#FF6B81'}}>육아 일기</div><div><button onClick={()=>setView('timeline')} style={{marginRight:8}}>타임라인</button><button onClick={()=>setView('calendar')}>캘린더</button><button onClick={()=>{ setModalEditId(null); setModalOpen(true); history.pushState({modal:true,modalId:null},'',undefined); }} style={{marginLeft:12,background:'#FFD8E0', border:'none', padding:'8px 10px', borderRadius:10}}>새로운 기록</button></div></div>)
   if(view==='timeline') main = <div><Timeline token={token} onView={(id)=>{ history.pushState({view:'detail',id},'',undefined); setView('detail'); setViewId(id)}} onNew={()=>{ setModalEditId(null); setModalOpen(true); history.pushState({modal:true,modalId:null},'',undefined); }} /></div>
   else if(view==='detail') main = <Detail token={token} id={viewId} onBack={()=>{ history.back(); }} onEdit={(id)=>{ setModalEditId(id); setModalOpen(true); history.pushState({modal:true,modalId:id},'',undefined); }} />
-  else if(view==='calendar') main = <CalendarView token={token} onOpenDate={(d)=>{ setModalEditId(null); setModalDate(d); setModalOpen(true); history.pushState({modal:true,modalId:null, modalDate:d},'',undefined); }} />
+  else if(view==='calendar') main = <CalendarView token={token} onOpenDate={(d)=>{ const items = entriesByDate && entriesByDate[d] ? entriesByDate[d] : []; if(items.length>0){ setModalOpen(true); setModalFromCalendar(true); setModalEditId(null); setModalDate(d); history.pushState({modal:true,modalId:null, modalDate:d, modalFrom:'calendar'},'',undefined); } else { setModalOpen(true); setModalFromCalendar(true); setModalEditId(null); setModalDate(d); history.pushState({modal:true,modalId:null, modalDate:d, modalFrom:'calendar'},'',undefined); } }} />
 
   return (<div>{Header}{main}{modalOpen && (
       <div>
