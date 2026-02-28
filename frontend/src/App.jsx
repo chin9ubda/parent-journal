@@ -160,13 +160,13 @@ function CalendarView({token, onOpenDate}){
   const weeks=[]; let day=1 - startDay
   for(let w=0; w<6; w++){ const week=[]; for(let i=0;i<7;i++){ const cur = new Date(yearMonth.y, yearMonth.m, day); const inMonth = cur.getMonth()===yearMonth.m; const key = cur.toISOString().slice(0,10); week.push({day:cur.getDate(), inMonth, key, count: entriesByDate[key]? entriesByDate[key].length:0}) ; day++ } weeks.push(week) }
   return (<div style={{padding:20, display:'flex', justifyContent:'center'}}>
-    <div style={{width:'100%', maxWidth:1000, background:'#fff', borderRadius:12, padding:12, boxShadow:'0 6px 18px rgba(0,0,0,0.04)', margin:'0 auto', maxHeight:'calc(100vh - 160px)', overflowY:'auto'}}>
+    <div style={{width:'100%', maxWidth:1000, background:'#fff', borderRadius:12, padding:12, boxShadow:'0 6px 18px rgba(0,0,0,0.04)', margin:'0 auto', maxHeight:'calc(100vh - 220px)', overflowY:'auto', paddingBottom:20}}>
     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
       <button onClick={prev}>◀</button>
       <div style={{fontSize:18}}>{yearMonth.y}년 {yearMonth.m+1}월</div>
       <button onClick={next}>▶</button>
     </div>
-    <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:6, marginTop:12}}>
+    <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:6, marginTop:12, gridAutoRows:'80px'}}>
       {['일','월','화','수','목','금','토'].map(h=>(<div key={h} style={{textAlign:'center',fontWeight:600,color:'#666'}}>{h}</div>))}
       {weeks.flat().map(cell=> (
         <div key={cell.key} onClick={()=>cell.inMonth && onOpenDate(cell.key)} style={{height:80, padding:8, borderRadius:8, background: cell.inMonth? '#fff':'#f7f7f7', boxShadow: cell.inMonth? '0 4px 12px rgba(0,0,0,0.04)': 'none', cursor: cell.inMonth? 'pointer':'default', position:'relative', boxSizing:'border-box'}}>
