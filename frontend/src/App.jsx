@@ -67,8 +67,8 @@ function Timeline({token, onView, onNew}){
   </div>)
 }
 
-function Editor({token, onDone, editId}){
-  const [date,setDate]=useState(new Date().toISOString().slice(0,10)); const [body,setBody]=useState(''); const [files,setFiles]=useState([])
+function Editor({token, onDone, editId, initialDate}){
+  const [date,setDate]=useState(initialDate || new Date().toISOString().slice(0,10)); const [body,setBody]=useState(''); const [files,setFiles]=useState([])
   const [keepImages,setKeepImages]=useState([])
   useEffect(()=>{
     if(editId){ (async ()=>{ try{ const r=await axios.get('/api/entries/'+editId,{params:{token}}); setBody(r.data.body); setDate(r.data.date); setKeepImages((r.data.images||[]).map(i=>i.original.split('/').pop())) }catch(e){console.error('load entry failed',e)} })() }
@@ -146,6 +146,39 @@ function Detail({token,id, onBack, onEdit}){
   </div>)
 }
 
+function CalendarView({token, onOpenDate}){
+  const [yearMonth,setYearMonth]=useState(()=>{ const d=new Date(); return {y:d.getFullYear(), m:d.getMonth()} })
+  const [entriesByDate,setEntriesByDate]=useState({})
+  useEffect(()=>{ if(token) loadAll() },[token, yearMonth])
+  function localDateKey(dstr){ try{ const d=new Date(dstr); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0') }catch(e){ return dstr.slice(0,10) } }
+  async function loadAll(){ const r=await axios.get('/api/entries',{params:{token, limit:1000}}); const grouped={}; (r.data||[]).forEach(e=>{ const d=localDateKey(e.date); if(!grouped[d]) grouped[d]=[]; grouped[d].push(e) }); setEntriesByDate(grouped) }
+  function prev(){ let y=yearMonth.y, m=yearMonth.m-1; if(m<0){m=11;y--} setYearMonth({y,m}) }
+  function next(){ let y=yearMonth.y, m=yearMonth.m+1; if(m>11){m=0;y++} setYearMonth({y,m}) }
+  const first=new Date(yearMonth.y, yearMonth.m,1)
+  const startDay = first.getDay() // 0 Sunday
+  const daysInMonth = new Date(yearMonth.y, yearMonth.m+1,0).getDate()
+  const weeks=[]; let day=1 - startDay
+  for(let w=0; w<6; w++){ const week=[]; for(let i=0;i<7;i++){ const cur = new Date(yearMonth.y, yearMonth.m, day); const inMonth = cur.getMonth()===yearMonth.m; const key = cur.toISOString().slice(0,10); week.push({day:cur.getDate(), inMonth, key, count: entriesByDate[key]? entriesByDate[key].length:0}) ; day++ } weeks.push(week) }
+  return (<div style={{padding:20, display:'flex', justifyContent:'center'}}>
+    <div style={{width:'100%', maxWidth:1000, background:'#fff', borderRadius:12, padding:12, boxShadow:'0 6px 18px rgba(0,0,0,0.04)'}}>
+    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+      <button onClick={prev}>◀</button>
+      <div style={{fontSize:18}}>{yearMonth.y}년 {yearMonth.m+1}월</div>
+      <button onClick={next}>▶</button>
+    </div>
+    <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:6, marginTop:12}}>
+      {['일','월','화','수','목','금','토'].map(h=>(<div key={h} style={{textAlign:'center',fontWeight:600,color:'#666'}}>{h}</div>))}
+      {weeks.flat().map(cell=> (
+        <div key={cell.key} onClick={()=>cell.inMonth && onOpenDate(cell.key)} style={{minHeight:80, padding:8, borderRadius:8, background: cell.inMonth? '#fff':'#f7f7f7', boxShadow: cell.inMonth? '0 4px 12px rgba(0,0,0,0.04)': 'none', cursor: cell.inMonth? 'pointer':'default', position:'relative'}}>
+          <div style={{position:'absolute',right:8,top:8,fontSize:12,color:'#999'}}>{cell.day}</div>
+          {cell.count>0 && (<div style={{position:'absolute',left:8,bottom:8,background:'#FFEEF2',color:'#FF6B81',padding:'4px 6px',borderRadius:12,fontSize:12}}>{cell.count}개</div>)}
+        </div>
+      ))}
+    </div>
+    </div>
+  </div>)
+}
+
 export default function App(){
   const [token,setToken]=useState(localStorage.getItem('pj_token'))
   const [role,setRole]=useState(localStorage.getItem('pj_role'))
@@ -177,9 +210,9 @@ export default function App(){
   function onLogin(t,r,auto){ setToken(t); setRole(r); if(auto){ localStorage.setItem('pj_token',t); localStorage.setItem('pj_role',r)} }
   if(!token) return <Login onLogin={onLogin} />
   let main = null
-  // calendar removed: keep only timeline and detail views
-  if(view==='timeline') main = <div><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:20}}><div style={{fontSize:20,color:'#FF6B81'}}>육아 일기</div></div><Timeline token={token} onView={(id)=>{ history.pushState({view:'detail',id},'',undefined); setView('detail'); setViewId(id)}} onNew={()=>{ setModalEditId(null); setModalOpen(true); history.pushState({modal:true,modalId:null},'',undefined); }} /></div>
+  if(view==='timeline') main = <div><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:20}}><div style={{fontSize:20,color:'#FF6B81'}}>육아 일기</div><div><button onClick={()=>setView('timeline')} style={{marginRight:8}}>타임라인</button><button onClick={()=>setView('calendar')}>캘린더</button></div></div><Timeline token={token} onView={(id)=>{ history.pushState({view:'detail',id},'',undefined); setView('detail'); setViewId(id)}} onNew={()=>{ setModalEditId(null); setModalOpen(true); history.pushState({modal:true,modalId:null},'',undefined); }} /></div>
   else if(view==='detail') main = <Detail token={token} id={viewId} onBack={()=>{ history.back(); }} onEdit={(id)=>{ setModalEditId(id); setModalOpen(true); history.pushState({modal:true,modalId:id},'',undefined); }} />
+  else if(view==='calendar') main = <CalendarView token={token} onOpenDate={(d)=>{ setModalEditId(null); setModalDate(d); setModalOpen(true); history.pushState({modal:true,modalId:null, modalDate:d},'',undefined); }} />
 
   return (<div><>{main}{modalOpen && (<div><div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.45)',backdropFilter:'blur(2px)',WebkitBackdropFilter:'blur(2px)'}} onClick={()=>{ history.back(); }}></div><div style={{position:'fixed',left:'50%',top:'50%',transform:'translate(-50%,-50%)',width:'min(920px,95%)',zIndex:3000,boxShadow:'0 20px 60px rgba(0,0,0,0.4)'}} onClick={e=>e.stopPropagation()}><div style={{background:'#fff',borderRadius:12,overflow:'hidden'}}><Editor token={token} editId={modalEditId} initialDate={modalDate} onDone={(eid)=>{ history.back(); setModalOpen(false); setModalEditId(null); setModalDate(null); if(eid){ history.pushState({view:'detail',id:eid},'',undefined); setView('detail'); /* force reload detail by resetting id briefly */ setViewId(null); setTimeout(()=>setViewId(eid),50) } else { setView('timeline'); setViewId(null); } }} /></div></div></div>)} </>
   </div>)
