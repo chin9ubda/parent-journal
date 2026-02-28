@@ -169,11 +169,13 @@ function CalendarView({token, onOpenDate}){
     <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:6, marginTop:12, gridAutoRows:'80px'}}>
       {['일','월','화','수','목','금','토'].map(h=>(<div key={h} style={{textAlign:'center',fontWeight:600,color:'#666'}}>{h}</div>))}
       {weeks.flat().map(cell=> (
-        <div key={cell.key} onClick={()=>cell.inMonth && onOpenDate(cell.key)} style={{height:80, padding:8, borderRadius:8, background: cell.inMonth? '#fff':'#f7f7f7', boxShadow: cell.inMonth? '0 4px 12px rgba(0,0,0,0.04)': 'none', cursor: cell.inMonth? 'pointer':'default', position:'relative', boxSizing:'border-box'}}>
-          <div style={{position:'absolute',right:8,top:8,fontSize:12,color:'#999'}}>{cell.day}</div>
-          {cell.count>0 && (<div style={{position:'absolute',left:8,bottom:8,background:'#FFEEF2',color:'#FF6B81',padding:'4px 6px',borderRadius:12,fontSize:12}}>{cell.count}개</div>)}
+        <div key={cell.key} onClick={()=>cell.inMonth && onOpenDate(cell.key)} style={{height:80, padding:8, borderRadius:8, background: cell.inMonth? '#fff':'transparent', boxShadow: cell.inMonth? '0 4px 12px rgba(0,0,0,0.04)': 'none', cursor: cell.inMonth? 'pointer':'default', position:'relative', boxSizing:'border-box'}}>{
+          cell.inMonth ? (<>
+            <div style={{position:'absolute',right:8,top:8,fontSize:12,color:'#999'}}>{cell.day}</div>
+            {cell.count>0 && (<div style={{position:'absolute',left:8,bottom:8,background:'#FFEEF2',color:'#FF6B81',padding:'4px 6px',borderRadius:12,fontSize:12}}>{cell.count}개</div>)}
+          </>) : null}
         </div>
-      ))}
+      ))
     </div>
     </div>
   </div>)
@@ -210,6 +212,7 @@ export default function App(){
   function onLogin(t,r,auto){ setToken(t); setRole(r); if(auto){ localStorage.setItem('pj_token',t); localStorage.setItem('pj_role',r)} }
   if(!token) return <Login onLogin={onLogin} />
   let main = null
+  const Header = (<div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:16,position:'sticky',top:0,background:'#fff',zIndex:200}}><div style={{fontSize:20,color:'#FF6B81'}}>육아 일기</div><div><button onClick={()=>setView('timeline')} style={{marginRight:8}}>타임라인</button><button onClick={()=>setView('calendar')}>캘린더</button><button onClick={()=>{ setModalEditId(null); setModalOpen(true); history.pushState({modal:true,modalId:null},'',undefined); }} style={{marginLeft:12,background:'#FFD8E0', border:'none', padding:'8px 10px', borderRadius:10}}>새로운 기록</button></div></div>)
   if(view==='timeline') main = <div><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:20}}><div style={{fontSize:20,color:'#FF6B81'}}>육아 일기</div><div><button onClick={()=>setView('timeline')} style={{marginRight:8}}>타임라인</button><button onClick={()=>setView('calendar')}>캘린더</button></div></div><Timeline token={token} onView={(id)=>{ history.pushState({view:'detail',id},'',undefined); setView('detail'); setViewId(id)}} onNew={()=>{ setModalEditId(null); setModalOpen(true); history.pushState({modal:true,modalId:null},'',undefined); }} /></div>
   else if(view==='detail') main = <Detail token={token} id={viewId} onBack={()=>{ history.back(); }} onEdit={(id)=>{ setModalEditId(id); setModalOpen(true); history.pushState({modal:true,modalId:id},'',undefined); }} />
   else if(view==='calendar') main = <CalendarView token={token} onOpenDate={(d)=>{ setModalEditId(null); setModalDate(d); setModalOpen(true); history.pushState({modal:true,modalId:null, modalDate:d},'',undefined); }} />
