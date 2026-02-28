@@ -145,17 +145,9 @@ function Detail({token,id, onBack, onEdit}){
   </div>)
 }
 
-function CalendarView({token, onOpenDate}){
+function CalendarView({token, onOpenDate, entriesByDate}){
   const [yearMonth,setYearMonth]=useState(()=>{ const d=new Date(); return {y:d.getFullYear(), m:d.getMonth()} })
-  const [entriesByDate,setEntriesByDate]=useState({})
-  useEffect(()=>{ if(token) loadAll() },[token, yearMonth])
-  function localDateKey(dstr){ try{ // parse YYYY-MM-DD without timezone effects
-    const m = dstr.match(/(\d{4}-\d{2}-\d{2})/);
-    const datePart = m? m[1] : dstr.slice(0,10);
-    const parts = datePart.split('-').map(x=>parseInt(x,10));
-    if(parts.length===3){ const d = new Date(parts[0], parts[1]-1, parts[2]); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0') }
-    return dstr.slice(0,10) }catch(e){ return dstr.slice(0,10) } }
-  async function loadAll(){ const r=await axios.get('/api/entries',{params:{token, limit:1000}}); const grouped={}; (r.data||[]).forEach(e=>{ const d=localDateKey(e.date); if(!grouped[d]) grouped[d]=[]; grouped[d].push(e) }); setEntriesByDate(grouped) }
+  function localDateKey(dstr){ try{ const m = dstr.match(/(\d{4}-\d{2}-\d{2})/); const datePart = m? m[1] : dstr.slice(0,10); const parts = datePart.split('-').map(x=>parseInt(x,10)); if(parts.length===3){ const d = new Date(parts[0], parts[1]-1, parts[2]); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0') } return dstr.slice(0,10) }catch(e){ return dstr.slice(0,10) } }
   function prev(){ let y=yearMonth.y, m=yearMonth.m-1; if(m<0){m=11;y--} setYearMonth({y,m}) }
   function next(){ let y=yearMonth.y, m=yearMonth.m+1; if(m>11){m=0;y++} setYearMonth({y,m}) }
   const first=new Date(yearMonth.y, yearMonth.m,1)
@@ -177,7 +169,7 @@ function CalendarView({token, onOpenDate}){
           cell.inMonth ? (<>
             <div style={{position:'absolute',right:8,top:8,fontSize:12,color:'#999'}}>{cell.day}</div>
             {cell.count>0 && (<div style={{position:'absolute',left:8,bottom:8,background:'#FFEEF2',color:'#FF6B81',padding:'4px 6px',borderRadius:12,fontSize:12}}>{cell.count}개</div>)}
-            { (entriesByDate[cell.key] && entriesByDate[cell.key].length>0 && entriesByDate[cell.key][entriesByDate[cell.key].length-1].images && entriesByDate[cell.key][entriesByDate[cell.key].length-1].images.length>0) ? (<img src={window.location.protocol+'//'+window.location.hostname+':8000'+entriesByDate[cell.key][entriesByDate[cell.key].length-1].images[0].thumb} style={{position:'absolute',right:8,bottom:8,width:40,height:40,objectFit:'cover',borderRadius:8}} />) : null }
+            { (entriesByDate && entriesByDate[cell.key] && entriesByDate && entriesByDate[cell.key].length>0 && entriesByDate && entriesByDate[cell.key][entriesByDate && entriesByDate[cell.key].length-1].images && entriesByDate && entriesByDate[cell.key][entriesByDate && entriesByDate[cell.key].length-1].images.length>0) ? (<img src={window.location.protocol+'//'+window.location.hostname+':8000'+entriesByDate && entriesByDate[cell.key][entriesByDate && entriesByDate[cell.key].length-1].images[0].thumb} style={{position:'absolute',right:8,bottom:8,width:40,height:40,objectFit:'cover',borderRadius:8}} />) : null }
           </>) : null}
         </div>
       ))}
@@ -206,7 +198,7 @@ export default function App(){
   const [modalOpen,setModalOpen]=useState(false)
   const [modalEditId,setModalEditId]=useState(null)
   const [modalDate,setModalDate]=useState(null)
-  useEffect(()=>{ if(token) { setView('timeline') } },[token])
+  useEffect(()=>{ if(token) { setView('timeline'); loadAllEntries(token) } },[token])
   useEffect(()=>{
     const onpop = (e) => {
       const s = history.state || {}
@@ -229,10 +221,12 @@ export default function App(){
   function onLogin(t,r,auto){ setToken(t); setRole(r); if(auto){ localStorage.setItem('pj_token',t); localStorage.setItem('pj_role',r)} }
   if(!token) return <Login onLogin={onLogin} />
   let main = null
+  const [entriesByDate,setEntriesByDate]=useState({})
+  async function loadAllEntries(token){ try{ const r=await axios.get('/api/entries',{params:{token, limit:1000}}); const grouped={}; (r.data||[]).forEach(e=>{ const d=(function(dstr){ const m = dstr.match(/(\d{4}-\d{2}-\d{2})/); const datePart = m? m[1] : dstr.slice(0,10); const parts = datePart.split('-').map(x=>parseInt(x,10)); if(parts.length===3){ const dd = new Date(parts[0], parts[1]-1, parts[2]); return dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0') } return dstr.slice(0,10) })(e.date); if(!grouped[d]) grouped[d]=[]; grouped[d].push(e) }); setEntriesByDate(grouped); }catch(err){console.error('loadAllEntries failed',err)} }
   const Header = (<div style={{display:(modalOpen && modalFromCalendar)?'none':'flex',justifyContent:'space-between',alignItems:'center',padding:16,position:'sticky',top:0,background:'#fff',zIndex:200}}><div style={{fontSize:20,color:'#FF6B81'}}>육아 일기</div><div><button onClick={()=>setView('timeline')} style={{marginRight:8}}>타임라인</button><button onClick={()=>setView('calendar')}>캘린더</button><button onClick={()=>{ setModalEditId(null); setModalOpen(true); history.pushState({modal:true,modalId:null},'',undefined); }} style={{marginLeft:12,background:'#FFD8E0', border:'none', padding:'8px 10px', borderRadius:10}}>새로운 기록</button></div></div>)
   if(view==='timeline') main = <div><Timeline token={token} onView={(id)=>{ history.pushState({view:'detail',id},'',undefined); setView('detail'); setViewId(id)}} onNew={()=>{ setModalEditId(null); setModalOpen(true); history.pushState({modal:true,modalId:null},'',undefined); }} /></div>
   else if(view==='detail') main = <Detail token={token} id={viewId} onBack={()=>{ history.back(); }} onEdit={(id)=>{ setModalEditId(id); setModalOpen(true); history.pushState({modal:true,modalId:id},'',undefined); }} />
-  else if(view==='calendar') main = <CalendarView token={token} onOpenDate={(d)=>{ const items = entriesByDate && entriesByDate[d] ? entriesByDate[d] : []; if(items.length>0){ setModalOpen(true); setModalFromCalendar(true); setModalEditId(null); setModalDate(d); history.pushState({modal:true,modalId:null, modalDate:d, modalFrom:'calendar'},'',undefined); } else { setModalOpen(true); setModalFromCalendar(true); setModalEditId(null); setModalDate(d); history.pushState({modal:true,modalId:null, modalDate:d, modalFrom:'calendar'},'',undefined); } }} />
+  else if(view==='calendar') main = <CalendarView token={token} entriesByDate={entriesByDate} onOpenDate={(d)=>{ const items = entriesByDate && entriesByDate[d] ? entriesByDate[d] : []; if(items.length>0){ setModalOpen(true); setModalFromCalendar(true); setModalEditId(null); setModalDate(d); history.pushState({modal:true,modalId:null, modalDate:d, modalFrom:'calendar'},'',undefined); } else { setModalOpen(true); setModalFromCalendar(true); setModalEditId(null); setModalDate(d); history.pushState({modal:true,modalId:null, modalDate:d, modalFrom:'calendar'},'',undefined); } }} />
 
   return (<div>{Header}{main}{modalOpen && (
       <div>
