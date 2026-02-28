@@ -149,7 +149,12 @@ function CalendarView({token, onOpenDate}){
   const [yearMonth,setYearMonth]=useState(()=>{ const d=new Date(); return {y:d.getFullYear(), m:d.getMonth()} })
   const [entriesByDate,setEntriesByDate]=useState({})
   useEffect(()=>{ if(token) loadAll() },[token, yearMonth])
-  function localDateKey(dstr){ try{ const d=new Date(dstr); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0') }catch(e){ return dstr.slice(0,10) } }
+  function localDateKey(dstr){ try{ // parse YYYY-MM-DD without timezone effects
+    const m = dstr.match(/(\d{4}-\d{2}-\d{2})/);
+    const datePart = m? m[1] : dstr.slice(0,10);
+    const parts = datePart.split('-').map(x=>parseInt(x,10));
+    if(parts.length===3){ const d = new Date(parts[0], parts[1]-1, parts[2]); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0') }
+    return dstr.slice(0,10) }catch(e){ return dstr.slice(0,10) } }
   async function loadAll(){ const r=await axios.get('/api/entries',{params:{token, limit:1000}}); const grouped={}; (r.data||[]).forEach(e=>{ const d=localDateKey(e.date); if(!grouped[d]) grouped[d]=[]; grouped[d].push(e) }); setEntriesByDate(grouped) }
   function prev(){ let y=yearMonth.y, m=yearMonth.m-1; if(m<0){m=11;y--} setYearMonth({y,m}) }
   function next(){ let y=yearMonth.y, m=yearMonth.m+1; if(m>11){m=0;y++} setYearMonth({y,m}) }
@@ -219,7 +224,7 @@ export default function App(){
   return (<div>{Header}{main}{modalOpen && (
       <div>
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.45)',backdropFilter:'blur(2px)',WebkitBackdropFilter:'blur(2px)'}} onClick={()=>{ history.back(); }}></div>
-        <div style={{position:'fixed',left:'50%',top:'50%',transform:'translate(-50%,-50%)',width:'min(920px,95%)',zIndex:3000,boxShadow:'0 20px 60px rgba(0,0,0,0.4)'}} onClick={e=>e.stopPropagation()}>
+        <div style={{position:'fixed',left:'50%',top:84,transform:'translateX(-50%)',width:'min(920px,95%)',zIndex:3000,boxShadow:'0 20px 60px rgba(0,0,0,0.4)',maxHeight:'calc(100vh - 120px)',overflowY:'auto',WebkitOverflowScrolling:'touch'}} onClick={e=>e.stopPropagation()}>
           <div style={{background:'#fff',borderRadius:12,overflow:'hidden'}}>
             <Editor token={token} editId={modalEditId} initialDate={modalDate} onDone={(eid)=>{ history.back(); setModalOpen(false); setModalEditId(null); setModalDate(null); if(eid){ history.pushState({view:'detail',id:eid},'',undefined); setView('detail'); /* force reload detail by resetting id briefly */ setViewId(null); setTimeout(()=>setViewId(eid),50) } else { setView('timeline'); setViewId(null); } }} />
           </div>
