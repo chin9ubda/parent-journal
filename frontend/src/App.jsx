@@ -177,6 +177,7 @@ function CalendarView({token, onOpenDate}){
           cell.inMonth ? (<>
             <div style={{position:'absolute',right:8,top:8,fontSize:12,color:'#999'}}>{cell.day}</div>
             {cell.count>0 && (<div style={{position:'absolute',left:8,bottom:8,background:'#FFEEF2',color:'#FF6B81',padding:'4px 6px',borderRadius:12,fontSize:12}}>{cell.count}개</div>)}
+            { (entriesByDate[cell.key] && entriesByDate[cell.key].length>0 && entriesByDate[cell.key][entriesByDate[cell.key].length-1].images && entriesByDate[cell.key][entriesByDate[cell.key].length-1].images.length>0) ? (<img src={window.location.protocol+'//'+window.location.hostname+':8000'+entriesByDate[cell.key][entriesByDate[cell.key].length-1].images[0].thumb} style={{position:'absolute',right:8,bottom:8,width:40,height:40,objectFit:'cover',borderRadius:8}} />) : null }
           </>) : null}
         </div>
       ))}
