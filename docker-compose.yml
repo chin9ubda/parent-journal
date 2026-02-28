@@ -1,0 +1,18 @@
+version: '3.8'
+services:
+  backend:
+    build: ./backend
+    container_name: pj_backend
+    restart: unless-stopped
+    volumes:
+      - ./data:/data
+    ports:
+      - "8000:8000"
+  frontend:
+    build: ./frontend
+    container_name: pj_frontend
+    restart: unless-stopped
+    ports:
+      - "30010:80"
+    depends_on:
+      - backend
