@@ -190,12 +190,14 @@ export default function App(){
   const [modalFromCalendar,setModalFromCalendar]=useState(false)
 
   function ListModal({items, date, onClose, onOpenEntry, onNew}){
-    return (<div style={{position:'fixed',left:'50%',top:84,transform:'translateX(-50%)',width:'min(560px,95%)',zIndex:3000,background:'#fff',borderRadius:12,boxShadow:'0 20px 60px rgba(0,0,0,0.4)'}} onClick={e=>e.stopPropagation()}>
+    const [editing,setEditing]=useState(false)
+    return (editing? (<div style={{position:'fixed',left:'50%',top:84,transform:'translateX(-50%)',width:'min(920px,95%)',zIndex:3000,boxShadow:'0 20px 60px rgba(0,0,0,0.4)'}} onClick={e=>e.stopPropagation()}><div style={{background:'#fff',borderRadius:12,overflow:'hidden'}}><Editor token={localStorage.getItem('pj_token')} initialDate={date} hideHeader={true} onDone={(eid)=>{ setEditing(false); if(eid){ onClose(); history.pushState({view:'detail',id:eid},'',undefined); setTimeout(()=>{ location.reload() },200) } else { setEditing(false); onClose(); } }} /></div></div>) : ( <div style={{position:'fixed',left:'50%',top:84,transform:'translateX(-50%)',width:'min(560px,95%)',zIndex:3000,background:'#fff',borderRadius:12,boxShadow:'0 20px 60px rgba(0,0,0,0.4)'}} onClick={e=>e.stopPropagation()}>
       <div style={{padding:16}}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}><div style={{fontWeight:700}}>{date}에 작성된 기록</div><div><button onClick={(e)=>{ e.stopPropagation(); console.log('ListModal onNew clicked, date=', date, '-> setting modalFromCalendar=true'); setModalFromCalendar(true); setModalEditId(null); setModalDate(date); setModalOpen(true); }} style={{background:'#FFD8E0',border:'none',padding:'6px 10px',borderRadius:8}}>새로운 기록</button></div></div>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}><div style={{fontWeight:700}}>{date}에 작성된 기록</div><div><button onClick={(e)=>{ e.stopPropagation(); console.log('ListModal onNew clicked, date=', date, '-> inline editor'); setEditing(true); }} style={{background:'#FFD8E0',border:'none',padding:'6px 10px',borderRadius:8}}>새로운 기록</button></div></div>
         <div style={{marginTop:12,display:'grid',gap:8}}>{items.map(it=>(<div key={it.id} style={{padding:12,borderRadius:10,background:'#fafafa',cursor:'pointer'}} onClick={()=>onOpenEntry(it.id)}><div style={{color:'#999',fontSize:12}}>{it.date}</div><div style={{fontSize:14,color:'#333'}}>{it.body.slice(0,120)}</div></div>))}</div>
       </div>
-    </div>)
+    </div> ))
+  }
   }
 
   const [token,setToken]=useState(localStorage.getItem('pj_token'))
