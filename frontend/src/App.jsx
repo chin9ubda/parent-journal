@@ -202,13 +202,15 @@ export default function App(){
   useEffect(()=>{
     const onpop = (e) => {
       const s = history.state || {}
-      console.log('POPSTATE', s, 'modalFromCalendar=', modalFromCalendar, 'modalOpen=', modalOpen)
+      console.log('POPSTATE handler: history.state=', s)
       if(s.view){
         setView(s.view)
         setViewId(s.id||null)
       }
-      if(s.modal){ setModalOpen(true); setModalEditId(s.modalId||null) } else { setModalOpen(false); setModalEditId(null) }
+      // restore modal state and its origin (calendar vs normal)
+      if(s.modal){ setModalOpen(true); setModalEditId(s.modalId||null); setModalDate(s.modalDate||null); setModalFromCalendar(Boolean(s.modalFrom==='calendar')) } else { setModalOpen(false); setModalEditId(null); setModalDate(null); setModalFromCalendar(false) }
     }
+
     window.addEventListener('popstate', onpop)
     return ()=> window.removeEventListener('popstate', onpop)
   },[])
