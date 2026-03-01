@@ -66,13 +66,20 @@ function Timeline({token, onView, onNew}){
   </div>)
 }
 
-function Editor({token, onDone, editId, initialDate}){
+function Editor({token, onDone, editId, initialDate, hideHeader}){
   const [date,setDate]=useState(initialDate || new Date().toISOString().slice(0,10)); const [body,setBody]=useState(''); const [files,setFiles]=useState([])
   const [keepImages,setKeepImages]=useState([])
   useEffect(()=>{
     if(editId){ (async ()=>{ try{ const r=await axios.get('/api/entries/'+editId,{params:{token}}); setBody(r.data.body); setDate(r.data.date); setKeepImages((r.data.images||[]).map(i=>i.original.split('/').pop())) }catch(e){console.error('load entry failed',e)} })() }
   },[editId, token])
-  useEffect(()=>{ console.log('Editor mount', editId, 'initialDate=', initialDate, 'modalFromCalendar=', modalFromCalendar) },[editId, initialDate, modalFromCalendar])
+  useEffect(()=>{ 
+    console.log('Editor mount', editId, 'initialDate=', initialDate, 'hideHeader=', hideHeader)
+    let prevDisplay = null
+    try{
+      if(hideHeader){ const h=document.getElementById('pj-header'); if(h){ prevDisplay=h.style.display; h.style.display='none' } }
+    }catch(e){}
+    return ()=>{ try{ if(hideHeader){ const h=document.getElementById('pj-header'); if(h && prevDisplay!==null) h.style.display=prevDisplay } }catch(e){} }
+  },[editId, initialDate, hideHeader])
   async function submit(){
     try{
       const form=new FormData();
@@ -227,7 +234,7 @@ export default function App(){
   const [entriesByDate,setEntriesByDate]=useState({})
   async function loadAllEntries(token){ try{ const r=await axios.get('/api/entries',{params:{token, limit:1000}}); const grouped={}; (r.data||[]).forEach(e=>{ const d=(function(dstr){ const m = dstr.match(/(\d{4}-\d{2}-\d{2})/); const datePart = m? m[1] : dstr.slice(0,10); const parts = datePart.split('-').map(x=>parseInt(x,10)); if(parts.length===3){ const dd = new Date(parts[0], parts[1]-1, parts[2]); return dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0') } return dstr.slice(0,10) })(e.date); if(!grouped[d]) grouped[d]=[]; grouped[d].push(e) }); setEntriesByDate(grouped); }catch(err){console.error('loadAllEntries failed',err)} }
   // hide header whenever modalFromCalendar is true (ensures editor opened from calendar never shows header)
-  const Header = (<div style={{display: modalFromCalendar? 'none':'flex',justifyContent:'space-between',alignItems:'center',padding:16,position:'sticky',top:0,background:'#fff',zIndex:200}}><div style={{fontSize:20,color:'#FF6B81'}}>육아 일기</div><div><button onClick={()=>setView('timeline')} style={{marginRight:8}}>타임라인</button><button onClick={()=>setView('calendar')}>캘린더</button><button onClick={()=>{ console.log('Header new clicked -> setting modalFromCalendar=false'); setModalFromCalendar(false); setModalEditId(null); setModalOpen(true); history.pushState({modal:true,modalId:null},'',undefined); }} style={{marginLeft:12,background:'#FFD8E0', border:'none', padding:'8px 10px', borderRadius:10}}>새로운 기록</button></div></div>)
+  const Header = (<div id="pj-header" style={{display: modalFromCalendar? 'none':'flex',justifyContent:'space-between',alignItems:'center',padding:16,position:'sticky',top:0,background:'#fff',zIndex:200}}><div style={{fontSize:20,color:'#FF6B81'}}>육아 일기</div><div><button onClick={()=>setView('timeline')} style={{marginRight:8}}>타임라인</button><button onClick={()=>setView('calendar')}>캘린더</button><button onClick={()=>{ console.log('Header new clicked -> setting modalFromCalendar=false'); setModalFromCalendar(false); setModalEditId(null); setModalOpen(true); history.pushState({modal:true,modalId:null},'',undefined); }} style={{marginLeft:12,background:'#FFD8E0', border:'none', padding:'8px 10px', borderRadius:10}}>새로운 기록</button></div></div>)
   if(view==='timeline') main = <div><Timeline token={token} onView={(id)=>{ history.pushState({view:'detail',id},'',undefined); setView('detail'); setViewId(id)}} onNew={()=>{ console.log('Header new clicked -> setting modalFromCalendar=false'); setModalFromCalendar(false); setModalEditId(null); setModalOpen(true); history.pushState({modal:true,modalId:null},'',undefined); }} /></div>
   else if(view==='detail') main = <Detail token={token} id={viewId} onBack={()=>{ history.back(); }} onEdit={(id)=>{ setModalEditId(id); setModalOpen(true); history.pushState({modal:true,modalId:id},'',undefined); }} />
   else if(view==='calendar') main = <CalendarView token={token} entriesByDate={entriesByDate} onOpenDate={(d)=>{ const items = entriesByDate && entriesByDate[d] ? entriesByDate[d] : []; console.log('Calendar date clicked', d, 'items=', items?items.length:0); if(items.length>0){ setModalOpen(true); setModalFromCalendar(true); setModalEditId(null); setModalDate(d); history.pushState({modal:true,modalId:null, modalDate:d, modalFrom:'calendar'},'',undefined); } else { setModalOpen(true); setModalFromCalendar(true); setModalEditId(null); setModalDate(d); history.pushState({modal:true,modalId:null, modalDate:d, modalFrom:'calendar'},'',undefined); } }} />
@@ -240,7 +247,7 @@ export default function App(){
         ) : (
           <div style={{position:'fixed',left:'50%',top:84,transform:'translateX(-50%)',width:'min(920px,95%)',zIndex:3000,boxShadow:'0 20px 60px rgba(0,0,0,0.4)'}} onClick={e=>e.stopPropagation()}>
             <div style={{background:'#fff',borderRadius:12,overflow:'hidden'}}>
-              <Editor token={token} editId={modalEditId} initialDate={modalDate} onDone={(eid)=>{ history.back(); setModalOpen(false); setModalEditId(null); setModalDate(null); setModalFromCalendar(false); if(eid){ history.pushState({view:'detail',id:eid},'',undefined); setView('detail'); setViewId(eid); } else { setView('timeline'); setViewId(null); } }} />
+              <Editor token={token} editId={modalEditId} initialDate={modalDate} hideHeader={modalFromCalendar} onDone={(eid)=>{ history.back(); setModalOpen(false); setModalEditId(null); setModalDate(null); setModalFromCalendar(false); if(eid){ history.pushState({view:'detail',id:eid},'',undefined); setView('detail'); setViewId(eid); } else { setView('timeline'); setViewId(null); } }} />
             </div>
           </div>
         ) }
