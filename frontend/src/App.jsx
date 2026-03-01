@@ -8,7 +8,7 @@ function FadeIn({children}){
     transition: 'opacity 280ms ease, transform 280ms ease',
     opacity: inView?1:0,
     transform: inView? 'translateY(0px)' : 'translateY(8px)'
-  }
+}
   return <div style={style}>{children}</div>
 }
 
@@ -22,7 +22,7 @@ try{
         console.log('DBG click', e.clientX, e.clientY, el && el.tagName, el && el.className)
       }catch(err){console.error(err)}
     }, {capture:true})
-  }
+}
 }catch(e){}
 // In-container backend hostname (docker-compose service name)
 axios.defaults.baseURL = process.env.REACT_APP_API_BASE || (window.location.protocol + '//' + window.location.hostname + ':8000')
@@ -35,7 +35,7 @@ function Login({onLogin}){
     e.preventDefault()
     const r=await axios.post('/api/login',{username:user,password:pw})
     onLogin(r.data.token, r.data.role, auto)
-  }
+}
   return (<div style={{maxWidth:420, margin:'40px auto', padding:24, borderRadius:16, background:'#FFF8F0', boxShadow:'0 6px 18px rgba(0,0,0,0.06)', fontFamily:'Noto Sans KR, Arial'}}>
     <h2>Parent Journal</h2>
     <form onSubmit={submit}>
@@ -93,7 +93,7 @@ function Editor({token, onDone, editId, initialDate, hideHeader}){
     }catch(e){
       console.error('save failed',e); alert('저장 실패: '+(e.response?e.response.statusText:e.message))
     }
-  }
+}
   return (<div style={{padding:20, fontFamily:'Noto Sans KR, Arial'}}>
     <h2 style={{color:'#FF6B81'}}>{editId? '기록 수정' : '새 기록 작성'}</h2>
     <div style={{display:'grid', gap:10, maxWidth:760}}>
@@ -197,8 +197,7 @@ export default function App(){
         <div style={{marginTop:12,display:'grid',gap:8}}>{items.map(it=>(<div key={it.id} style={{padding:12,borderRadius:10,background:'#fafafa',cursor:'pointer'}} onClick={()=>onOpenEntry(it.id)}><div style={{color:'#999',fontSize:12}}>{it.date}</div><div style={{fontSize:14,color:'#333'}}>{it.body.slice(0,120)}</div></div>))}</div>
       </div>
     </div> ))
-  }
-  }
+}
 
   const [token,setToken]=useState(localStorage.getItem('pj_token'))
   const [role,setRole]=useState(localStorage.getItem('pj_role'))
@@ -223,7 +222,17 @@ export default function App(){
     window.addEventListener('popstate', onpop)
     return ()=> window.removeEventListener('popstate', onpop)
   },[])
-  useEffect(()=>{ console.log('modalOpen=', modalOpen, 'modalEditId=', modalEditId) },[modalOpen, modalEditId])
+    useEffect(()=>{ console.log('modalOpen=', modalOpen, 'modalEditId=', modalEditId) },[modalOpen, modalEditId])
+  // ensure DOM header is hidden whenever modal is open from calendar (defensive)
+  useEffect(()=>{
+    try{
+      const h = typeof document !== 'undefined' ? document.getElementById('pj-header') : null
+      if(h){
+        if(modalOpen && modalFromCalendar){ h.style.display='none' } else { h.style.display = modalFromCalendar? 'none':'flex' }
+      }
+    }catch(e){console.error('header hide effect failed', e)}
+  },[modalOpen, modalFromCalendar])
+
   // ensure there's an initial history state so a single back goes to timeline
   useEffect(()=>{
     try{ const s = history.state || {};
