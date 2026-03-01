@@ -233,6 +233,18 @@ export default function App(){
     }catch(e){console.error('header hide effect failed', e)}
   },[modalOpen, modalFromCalendar])
 
+  useEffect(()=>{
+    try{
+      const styleId = 'pj-hide-style'
+      let st = document.getElementById(styleId)
+      if(modalFromCalendar){
+        if(!st){ st = document.createElement('style'); st.id=styleId; st.innerHTML='#pj-header{display:none !important;}' ; document.head.appendChild(st) }
+      } else {
+        if(st) st.remove()
+      }
+    }catch(e){console.error('pj-hide-style effect failed', e)}
+  },[modalFromCalendar])
+
   // ensure there's an initial history state so a single back goes to timeline
   useEffect(()=>{
     try{ const s = history.state || {};
