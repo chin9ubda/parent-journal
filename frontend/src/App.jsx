@@ -271,7 +271,7 @@ export default function App(){
         ) : (
           <div style={{position:'fixed',left:'50%',top:84,transform:'translateX(-50%)',width:'min(920px,95%)',zIndex:3000,boxShadow:'0 20px 60px rgba(0,0,0,0.4)'}} onClick={e=>e.stopPropagation()}>
             <div style={{background:'#fff',borderRadius:12,overflow:'hidden'}}>
-              <Editor token={token} editId={modalEditId} initialDate={modalDate} hideHeader={modalFromCalendar} onDone={(eid)=>{ history.back(); setModalOpen(false); setModalEditId(null); setModalDate(null); setModalFromCalendar(false); if(eid){ history.pushState({view:'detail',id:eid},'',undefined); setView('detail'); setViewId(eid); } else { setView('timeline'); setViewId(null); } }} />
+              <Editor token={token} editId={modalEditId} initialDate={modalDate} hideHeader={true} onDone={(eid)=>{ history.back(); setModalOpen(false); setModalEditId(null); setModalDate(null); setModalFromCalendar(false); if(eid){ history.pushState({view:'detail',id:eid},'',undefined); setView('detail'); setViewId(eid); } else { setView('timeline'); setViewId(null); } }} />
             </div>
           </div>
         ) }
