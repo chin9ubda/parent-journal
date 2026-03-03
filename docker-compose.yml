@@ -4,6 +4,8 @@ services:
     build: ./backend
     container_name: pj_backend
     restart: unless-stopped
+    #environment:
+    #  - PJ_CORS_ORIGINS=http://your-domain.com  # 운영 환경에서 설정
     volumes:
       - ./data:/data
     ports:

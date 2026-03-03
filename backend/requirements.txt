@@ -3,6 +3,4 @@ uvicorn[standard]
 python-multipart
 passlib[bcrypt]
 pyjwt
-sqlalchemy
-alembic
 pillow

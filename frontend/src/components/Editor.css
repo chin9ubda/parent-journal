@@ -1,0 +1,129 @@
+.editor {
+  padding: 24px;
+}
+
+.editor__title {
+  color: var(--color-primary);
+  margin-bottom: 20px;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.editor__form {
+  display: grid;
+  gap: 12px;
+  max-width: 720px;
+}
+
+.editor__label {
+  font-size: 13px;
+  color: var(--color-text-light);
+  font-weight: 600;
+  margin-bottom: -4px;
+}
+
+.editor__input {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-white);
+  font-size: 15px;
+  color: var(--color-text);
+}
+
+.editor__textarea {
+  min-height: 180px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-white);
+  resize: vertical;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--color-text);
+}
+
+.editor__textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+.editor__file-btn {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  padding: 16px;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-primary-bg);
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--color-text-light);
+  transition: all var(--transition-fast);
+  text-align: center;
+  font-weight: 500;
+}
+
+.editor__file-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.editor__file-btn:hover {
+  border-color: var(--color-primary-light);
+  background: #FFF0F5;
+  color: var(--color-primary);
+  transform: none;
+}
+
+.editor__images {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.editor__image-item {
+  width: 100px;
+  text-align: center;
+}
+
+.editor__thumb {
+  width: 100px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--color-white);
+  box-shadow: var(--shadow-sm);
+  display: block;
+}
+
+.editor__remove-btn {
+  background: var(--color-white);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: 3px 10px;
+  margin-top: 6px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-light);
+  transition: all var(--transition-fast);
+}
+
+.editor__remove-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-bg);
+}
+
+.editor__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}

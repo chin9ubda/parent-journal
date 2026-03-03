@@ -1,0 +1,45 @@
+.settings {
+  padding: 24px;
+}
+
+.settings__title {
+  color: var(--color-primary);
+  margin-bottom: 20px;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.settings__form {
+  display: grid;
+  gap: 12px;
+  max-width: 400px;
+}
+
+.settings__label {
+  font-size: 13px;
+  color: var(--color-text-light);
+  font-weight: 600;
+  margin-bottom: -4px;
+}
+
+.settings__input {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-white);
+  font-size: 15px;
+  color: var(--color-text);
+}
+
+.settings__input:focus {
+  outline: none;
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 3px rgba(255, 107, 129, 0.1);
+}
+
+.settings__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
