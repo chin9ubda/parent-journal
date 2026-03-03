@@ -8,8 +8,17 @@ export async function login(username, password) {
   return r.data
 }
 
-export async function fetchEntries(token, limit = 1000) {
-  const r = await api.get('/api/entries', { params: { token, limit } })
+export async function fetchEntries(token, limit = 1000, { q, tag, offset } = {}) {
+  const params = { token, limit }
+  if (q) params.q = q
+  if (tag) params.tag = tag
+  if (offset) params.offset = offset
+  const r = await api.get('/api/entries', { params })
+  return r.data
+}
+
+export async function fetchTags(token) {
+  const r = await api.get('/api/tags', { params: { token } })
   return r.data
 }
 

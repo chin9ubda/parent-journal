@@ -19,6 +19,9 @@
   top: 80px;
   transform: translateX(-50%);
   width: min(560px, 92%);
+  max-height: calc(100dvh - 100px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   z-index: 3000;
   animation: modal-slide-up 350ms cubic-bezier(0.16, 1, 0.3, 1);
 }

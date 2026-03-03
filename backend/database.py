@@ -30,4 +30,8 @@ def init_db():
             c.execute("ALTER TABLE users ADD COLUMN baby_name TEXT")
         if 'due_date' not in cols:
             c.execute("ALTER TABLE users ADD COLUMN due_date TEXT")
+        # Migrate: add tags column to entries table
+        entry_cols = {row[1] for row in c.execute("PRAGMA table_info(entries)").fetchall()}
+        if 'tags' not in entry_cols:
+            c.execute("ALTER TABLE entries ADD COLUMN tags TEXT DEFAULT '[]'")
         conn.commit()

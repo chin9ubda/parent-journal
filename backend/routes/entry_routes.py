@@ -9,21 +9,33 @@ from file_handler import save_upload_files, delete_entry_files, get_entry_images
 router = APIRouter(prefix="/api")
 
 
+def _parse_tags(raw: str) -> str:
+    try:
+        parsed = json.loads(raw)
+        if not isinstance(parsed, list):
+            parsed = []
+        return json.dumps(parsed, ensure_ascii=False)
+    except (json.JSONDecodeError, TypeError):
+        return '[]'
+
+
 @router.post('/entries')
 async def create_entry(
     body: str = Form(...),
     title: str = Form(None),
     date: str = Form(None),
+    tags: str = Form('[]'),
     files: List[UploadFile] = File([]),
     user: dict = Depends(get_current_user_form)
 ):
     uid = user['uid']
     dt = date or datetime.utcnow().isoformat()
+    tags_json = _parse_tags(tags)
     with get_db() as conn:
         c = conn.cursor()
         c.execute(
-            'INSERT INTO entries(user_id, title, body, date) VALUES(?,?,?,?)',
-            (uid, title or '', body, dt)
+            'INSERT INTO entries(user_id, title, body, date, tags) VALUES(?,?,?,?,?)',
+            (uid, title or '', body, dt, tags_json)
         )
         eid = c.lastrowid
         save_upload_files(eid, files, conn)
@@ -35,18 +47,52 @@ async def create_entry(
 def list_entries(
     limit: int = 100,
     offset: int = 0,
+    q: str = None,
+    tag: str = None,
     user: dict = Depends(get_current_user)
 ):
     uid = user['uid']
     with get_db() as conn:
         c = conn.cursor()
+        sql = 'SELECT id, title, body, date, tags FROM entries WHERE user_id=?'
+        params = [uid]
+        if q:
+            sql += ' AND (title LIKE ? OR body LIKE ?)'
+            like_q = f'%{q}%'
+            params.extend([like_q, like_q])
+        if tag:
+            sql += ' AND tags LIKE ?'
+            params.append(f'%"{tag}"%')
+        sql += ' ORDER BY date DESC, id DESC LIMIT ? OFFSET ?'
+        params.extend([limit, offset])
+        c.execute(sql, params)
+        rows = c.fetchall()
+    return [
+        {'id': r[0], 'title': r[1], 'body': r[2], 'date': r[3],
+         'tags': json.loads(r[4]) if r[4] else []}
+        for r in rows
+    ]
+
+
+@router.get('/tags')
+def list_tags(user: dict = Depends(get_current_user)):
+    uid = user['uid']
+    with get_db() as conn:
+        c = conn.cursor()
         c.execute(
-            'SELECT id, title, body, date FROM entries WHERE user_id=? '
-            'ORDER BY date DESC, id DESC LIMIT ? OFFSET ?',
-            (uid, limit, offset)
+            "SELECT tags FROM entries WHERE user_id=? AND tags IS NOT NULL AND tags != '[]'",
+            (uid,)
         )
         rows = c.fetchall()
-    return [{'id': r[0], 'title': r[1], 'body': r[2], 'date': r[3]} for r in rows]
+    tag_set = set()
+    for row in rows:
+        try:
+            for t in json.loads(row[0]):
+                if t:
+                    tag_set.add(t)
+        except (json.JSONDecodeError, TypeError):
+            pass
+    return sorted(tag_set)
 
 
 @router.get('/entries/{eid}')
@@ -54,7 +100,7 @@ def get_entry(eid: int, user: dict = Depends(get_current_user)):
     uid = user['uid']
     with get_db() as conn:
         c = conn.cursor()
-        c.execute('SELECT id, user_id, title, body, date FROM entries WHERE id=?', (eid,))
+        c.execute('SELECT id, user_id, title, body, date, tags FROM entries WHERE id=?', (eid,))
         r = c.fetchone()
     if not r:
         raise HTTPException(status_code=404)
@@ -62,7 +108,11 @@ def get_entry(eid: int, user: dict = Depends(get_current_user)):
     if r[1] != uid and user.get('role') != 'admin':
         raise HTTPException(status_code=403)
     imgs = get_entry_images(eid)
-    return {'id': r[0], 'title': r[2], 'body': r[3], 'date': r[4], 'images': imgs}
+    return {
+        'id': r[0], 'title': r[2], 'body': r[3], 'date': r[4],
+        'tags': json.loads(r[5]) if r[5] else [],
+        'images': imgs
+    }
 
 
 @router.put('/entries/{eid}')
@@ -70,6 +120,7 @@ async def update_entry(
     eid: int,
     body: str = Form(...),
     date: str = Form(None),
+    tags: str = Form(None),
     keep_images: str = Form(None),
     files: List[UploadFile] = File([]),
     user: dict = Depends(get_current_user_form)
@@ -83,10 +134,15 @@ async def update_entry(
             raise HTTPException(status_code=404)
         if row[0] != uid and user.get('role') != 'admin':
             raise HTTPException(status_code=403)
-        c.execute(
-            'UPDATE entries SET body=?, date=? WHERE id=?',
-            (body, date or datetime.utcnow().isoformat(), eid)
-        )
+
+        update_fields = ['body=?', 'date=?']
+        update_params = [body, date or datetime.utcnow().isoformat()]
+        if tags is not None:
+            update_fields.append('tags=?')
+            update_params.append(_parse_tags(tags))
+        update_params.append(eid)
+        c.execute(f'UPDATE entries SET {", ".join(update_fields)} WHERE id=?', update_params)
+
         # Handle kept images
         if keep_images is not None:
             try:

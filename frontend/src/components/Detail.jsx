@@ -39,6 +39,13 @@ export default function Detail({ token, id, onBack, onEdit, onDeleted }) {
         <div>
           <div className="detail__label">소중한 기록</div>
           <div className="detail__date">{entry.date}</div>
+          {entry.tags?.length > 0 && (
+            <div className="detail__tags">
+              {entry.tags.map(t => (
+                <span key={t} className="detail__tag">#{t}</span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
       <div className="detail__content">

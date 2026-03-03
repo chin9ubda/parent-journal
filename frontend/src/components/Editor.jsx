@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { fetchEntry, createEntry, updateEntry } from '../api'
+import { fetchEntry, fetchTags, createEntry, updateEntry } from '../api'
 import { getUploadUrl } from '../utils/url'
 import './Editor.css'
 
@@ -9,6 +9,13 @@ export default function Editor({ token, onDone, editId, initialDate }) {
   const [files, setFiles] = useState([])
   const [keepImages, setKeepImages] = useState([])
   const [saving, setSaving] = useState(false)
+  const [tags, setTags] = useState([])
+  const [tagInput, setTagInput] = useState('')
+  const [allTags, setAllTags] = useState([])
+
+  useEffect(() => {
+    if (token) fetchTags(token).then(setAllTags).catch(() => {})
+  }, [token])
 
   useEffect(() => {
     if (editId) {
@@ -17,6 +24,7 @@ export default function Editor({ token, onDone, editId, initialDate }) {
           const data = await fetchEntry(editId, token)
           setBody(data.body)
           setDate(data.date)
+          setTags(data.tags || [])
           setKeepImages((data.images || []).map(i => i.filename || i.original.split('/').pop()))
         } catch (err) {
           console.error('Failed to load entry:', err)
@@ -24,6 +32,12 @@ export default function Editor({ token, onDone, editId, initialDate }) {
       })()
     }
   }, [editId, token])
+
+  function addTag(value) {
+    const t = value.trim().replace(/^#/, '')
+    if (t && !tags.includes(t)) setTags([...tags, t])
+    setTagInput('')
+  }
 
   async function handleSave() {
     if (saving) return
@@ -33,6 +47,7 @@ export default function Editor({ token, onDone, editId, initialDate }) {
       form.append('body', body)
       form.append('date', date)
       form.append('token', token)
+      form.append('tags', JSON.stringify(tags))
       for (const f of files) form.append('files', f)
 
       if (editId) {
@@ -49,6 +64,11 @@ export default function Editor({ token, onDone, editId, initialDate }) {
       setSaving(false)
     }
   }
+
+  const suggestedTags = allTags
+    .filter(t => !tags.includes(t))
+    .filter(t => !tagInput || t.includes(tagInput))
+    .slice(0, 8)
 
   return (
     <div className="editor">
@@ -69,6 +89,52 @@ export default function Editor({ token, onDone, editId, initialDate }) {
           value={body}
           onChange={e => setBody(e.target.value)}
         />
+
+        <label className="editor__label">태그</label>
+        <div className="editor__tag-area">
+          {tags.length > 0 && (
+            <div className="editor__tag-list">
+              {tags.map(t => (
+                <span key={t} className="editor__tag-badge">
+                  #{t}
+                  <button
+                    className="editor__tag-remove"
+                    onClick={() => setTags(tags.filter(x => x !== t))}
+                  >
+                    &times;
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          <input
+            type="text"
+            className="editor__tag-input"
+            placeholder="태그 입력 후 Enter (예: 이유식)"
+            value={tagInput}
+            onChange={e => setTagInput(e.target.value)}
+            onKeyDown={e => {
+              if ((e.key === 'Enter' || e.key === ',') && tagInput.trim()) {
+                e.preventDefault()
+                addTag(tagInput)
+              }
+            }}
+          />
+          {suggestedTags.length > 0 && (
+            <div className="editor__tag-suggestions">
+              {suggestedTags.map(t => (
+                <button
+                  key={t}
+                  type="button"
+                  className="editor__tag-suggest-btn"
+                  onClick={() => addTag(t)}
+                >
+                  +{t}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         <label className="editor__label">사진 추가</label>
         <label className="editor__file-btn">
