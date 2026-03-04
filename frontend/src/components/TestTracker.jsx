@@ -204,14 +204,14 @@ export default function TestTracker({ token }) {
             onChange={handleFileSelect}
             disabled={uploading}
           />
-          {uploading ? '분석 중...' : '📷 임태기 사진 촬영/선택'}
+          {uploading ? '분석 중...' : '📷 임태기 사진 선택'}
         </label>
       </div>
 
       {/* Progress chart — line chart */}
       {tests.length > 1 && (() => {
         const sorted = [...tests].reverse()
-        const pad = { top: 16, bottom: 28, left: 12, right: 12 }
+        const pad = { top: 16, bottom: 28, left: 30, right: 30 }
         const chartH = 120
         const chartW = Math.max(sorted.length * 56, 280)
         const plotH = chartH - pad.top - pad.bottom
@@ -391,7 +391,7 @@ export default function TestTracker({ token }) {
         ))}
         {tests.length === 0 && (
           <div className="test-tracker__empty">
-            아직 분석한 임태기가 없습니다.<br />사진을 촬영해 보세요!
+            아직 분석한 임태기가 없습니다.<br />사진을 선택해 보세요!
           </div>
         )}
       </div>
