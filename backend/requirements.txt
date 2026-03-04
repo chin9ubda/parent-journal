@@ -4,3 +4,5 @@ python-multipart
 passlib[bcrypt]
 pyjwt
 pillow
+opencv-python-headless
+numpy

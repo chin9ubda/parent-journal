@@ -25,17 +25,19 @@ async def create_entry(
     title: str = Form(None),
     date: str = Form(None),
     tags: str = Form('[]'),
+    timeline_label: str = Form(None),
     files: List[UploadFile] = File([]),
     user: dict = Depends(get_current_user_form)
 ):
     uid = user['uid']
     dt = date or datetime.utcnow().isoformat()
     tags_json = _parse_tags(tags)
+    tl = timeline_label.strip() if timeline_label and timeline_label.strip() else None
     with get_db() as conn:
         c = conn.cursor()
         c.execute(
-            'INSERT INTO entries(user_id, title, body, date, tags) VALUES(?,?,?,?,?)',
-            (uid, title or '', body, dt, tags_json)
+            'INSERT INTO entries(user_id, title, body, date, tags, timeline_label) VALUES(?,?,?,?,?,?)',
+            (uid, title or '', body, dt, tags_json, tl)
         )
         eid = c.lastrowid
         save_upload_files(eid, files, conn)
@@ -54,7 +56,7 @@ def list_entries(
     uid = user['uid']
     with get_db() as conn:
         c = conn.cursor()
-        sql = 'SELECT id, title, body, date, tags FROM entries WHERE user_id=?'
+        sql = 'SELECT id, title, body, date, tags, timeline_label FROM entries WHERE user_id=?'
         params = [uid]
         if q:
             sql += ' AND (title LIKE ? OR body LIKE ?)'
@@ -69,7 +71,8 @@ def list_entries(
         rows = c.fetchall()
     return [
         {'id': r[0], 'title': r[1], 'body': r[2], 'date': r[3],
-         'tags': json.loads(r[4]) if r[4] else []}
+         'tags': json.loads(r[4]) if r[4] else [],
+         'timeline_label': r[5]}
         for r in rows
     ]
 
@@ -95,12 +98,32 @@ def list_tags(user: dict = Depends(get_current_user)):
     return sorted(tag_set)
 
 
+@router.get('/timeline')
+def list_timeline(user: dict = Depends(get_current_user)):
+    uid = user['uid']
+    with get_db() as conn:
+        c = conn.cursor()
+        c.execute(
+            'SELECT id, date, timeline_label, body, tags FROM entries '
+            'WHERE user_id=? AND timeline_label IS NOT NULL '
+            'ORDER BY date ASC, id ASC',
+            (uid,)
+        )
+        rows = c.fetchall()
+    return [
+        {'id': r[0], 'date': r[1], 'timeline_label': r[2],
+         'body': (r[3] or '')[:100],
+         'tags': json.loads(r[4]) if r[4] else []}
+        for r in rows
+    ]
+
+
 @router.get('/entries/{eid}')
 def get_entry(eid: int, user: dict = Depends(get_current_user)):
     uid = user['uid']
     with get_db() as conn:
         c = conn.cursor()
-        c.execute('SELECT id, user_id, title, body, date, tags FROM entries WHERE id=?', (eid,))
+        c.execute('SELECT id, user_id, title, body, date, tags, timeline_label FROM entries WHERE id=?', (eid,))
         r = c.fetchone()
     if not r:
         raise HTTPException(status_code=404)
@@ -111,6 +134,7 @@ def get_entry(eid: int, user: dict = Depends(get_current_user)):
     return {
         'id': r[0], 'title': r[2], 'body': r[3], 'date': r[4],
         'tags': json.loads(r[5]) if r[5] else [],
+        'timeline_label': r[6],
         'images': imgs
     }
 
@@ -121,6 +145,7 @@ async def update_entry(
     body: str = Form(...),
     date: str = Form(None),
     tags: str = Form(None),
+    timeline_label: str = Form(None),
     keep_images: str = Form(None),
     files: List[UploadFile] = File([]),
     user: dict = Depends(get_current_user_form)
@@ -140,6 +165,10 @@ async def update_entry(
         if tags is not None:
             update_fields.append('tags=?')
             update_params.append(_parse_tags(tags))
+        # timeline_label: set to value or NULL (to clear)
+        update_fields.append('timeline_label=?')
+        tl = timeline_label.strip() if timeline_label and timeline_label.strip() else None
+        update_params.append(tl)
         update_params.append(eid)
         c.execute(f'UPDATE entries SET {", ".join(update_fields)} WHERE id=?', update_params)
 

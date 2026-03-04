@@ -12,6 +12,8 @@ export default function Editor({ token, onDone, editId, initialDate }) {
   const [tags, setTags] = useState([])
   const [tagInput, setTagInput] = useState('')
   const [allTags, setAllTags] = useState([])
+  const [isTimeline, setIsTimeline] = useState(false)
+  const [timelineLabel, setTimelineLabel] = useState('')
 
   useEffect(() => {
     if (token) fetchTags(token).then(setAllTags).catch(() => {})
@@ -25,6 +27,10 @@ export default function Editor({ token, onDone, editId, initialDate }) {
           setBody(data.body)
           setDate(data.date)
           setTags(data.tags || [])
+          if (data.timeline_label) {
+            setIsTimeline(true)
+            setTimelineLabel(data.timeline_label)
+          }
           setKeepImages((data.images || []).map(i => i.filename || i.original.split('/').pop()))
         } catch (err) {
           console.error('Failed to load entry:', err)
@@ -48,6 +54,9 @@ export default function Editor({ token, onDone, editId, initialDate }) {
       form.append('date', date)
       form.append('token', token)
       form.append('tags', JSON.stringify(tags))
+      if (isTimeline && timelineLabel.trim()) {
+        form.append('timeline_label', timelineLabel.trim())
+      }
       for (const f of files) form.append('files', f)
 
       if (editId) {
@@ -107,19 +116,29 @@ export default function Editor({ token, onDone, editId, initialDate }) {
               ))}
             </div>
           )}
-          <input
-            type="text"
-            className="editor__tag-input"
-            placeholder="태그 입력 후 Enter (예: 이유식)"
-            value={tagInput}
-            onChange={e => setTagInput(e.target.value)}
-            onKeyDown={e => {
-              if ((e.key === 'Enter' || e.key === ',') && tagInput.trim()) {
-                e.preventDefault()
-                addTag(tagInput)
-              }
-            }}
-          />
+          <div className="editor__tag-input-row">
+            <input
+              type="text"
+              className="editor__tag-input"
+              placeholder="태그 입력 (예: 이유식)"
+              value={tagInput}
+              onChange={e => setTagInput(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  e.stopPropagation()
+                }
+              }}
+            />
+            <button
+              type="button"
+              className="editor__tag-add-btn"
+              onClick={() => { if (tagInput.trim()) addTag(tagInput) }}
+              disabled={!tagInput.trim()}
+            >
+              추가
+            </button>
+          </div>
           {suggestedTags.length > 0 && (
             <div className="editor__tag-suggestions">
               {suggestedTags.map(t => (
@@ -132,6 +151,31 @@ export default function Editor({ token, onDone, editId, initialDate }) {
                   +{t}
                 </button>
               ))}
+            </div>
+          )}
+        </div>
+
+        <div className="editor__timeline-toggle">
+          <label className="editor__timeline-check">
+            <input
+              type="checkbox"
+              checked={isTimeline}
+              onChange={e => {
+                setIsTimeline(e.target.checked)
+                if (!e.target.checked) setTimelineLabel('')
+              }}
+            />
+            타임라인 이벤트
+          </label>
+          {isTimeline && (
+            <div className="editor__timeline-label">
+              <input
+                type="text"
+                placeholder="예: 채취일, 이식일..."
+                value={timelineLabel}
+                onChange={e => setTimelineLabel(e.target.value)}
+                className="editor__timeline-input"
+              />
             </div>
           )}
         </div>

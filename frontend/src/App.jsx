@@ -9,6 +9,8 @@ import Detail from './components/Detail'
 import CalendarView from './components/CalendarView'
 import Editor from './components/Editor'
 import ListModal from './components/ListModal'
+import TestTracker from './components/TestTracker'
+import EventTimeline from './components/EventTimeline'
 import Settings from './components/Settings'
 import Modal from './components/Modal'
 import './App.css'
@@ -26,7 +28,7 @@ export default function App() {
 
   if (!token) return <Login onLogin={login} />
 
-  const showHeader = view !== 'detail' && !modal.open && !settingsOpen
+  const showHeader = view !== 'detail' && !settingsOpen
 
   function handleOpenDate(dateKey) {
     openModal({ date: dateKey, fromCalendar: true })
@@ -87,6 +89,14 @@ export default function App() {
           entriesByDate={entriesByDate}
           onOpenDate={handleOpenDate}
         />
+      )}
+
+      {view === 'test' && (
+        <TestTracker token={token} />
+      )}
+
+      {view === 'events' && (
+        <EventTimeline token={token} onNavigate={navigate} />
       )}
 
       {modal.open && (

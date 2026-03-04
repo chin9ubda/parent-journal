@@ -4,8 +4,10 @@
 
 .list-modal__header {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
+  gap: 10px;
+  text-align: center;
 }
 
 .list-modal__title {
