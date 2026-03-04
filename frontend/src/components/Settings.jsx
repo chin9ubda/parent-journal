@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { updateSettings } from '../api'
+import { updateSettings, getExportJsonUrl, getExportZipUrl } from '../api'
 import './Settings.css'
 
 export default function Settings({ token, babyName, dueDate, onSaved, onClose }) {
@@ -14,7 +14,7 @@ export default function Settings({ token, babyName, dueDate, onSaved, onClose })
       const result = await updateSettings(token, { baby_name: name, due_date: date })
       onSaved(result.baby_name, result.due_date)
     } catch (err) {
-      alert('설정 저장 실패')
+      alert('설정 저장에 실패했습니다.')
     } finally {
       setSaving(false)
     }
@@ -47,6 +47,24 @@ export default function Settings({ token, babyName, dueDate, onSaved, onClose })
           </button>
           <button className="btn" onClick={onClose}>닫기</button>
         </div>
+      </div>
+
+      <div className="settings__divider" />
+
+      <h3 className="settings__section-title">데이터 내보내기</h3>
+      <div className="settings__export">
+        <a href={getExportJsonUrl(token)} className="settings__export-btn" download>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M8 2v8M5 7l3 3 3-3M2 12h12"/>
+          </svg>
+          JSON 백업
+        </a>
+        <a href={getExportZipUrl(token)} className="settings__export-btn" download>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M8 2v8M5 7l3 3 3-3M2 12h12"/>
+          </svg>
+          전체 백업 (사진 포함)
+        </a>
       </div>
     </div>
   )

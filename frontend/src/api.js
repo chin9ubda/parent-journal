@@ -42,6 +42,19 @@ export async function fetchTimeline(token) {
   return r.data
 }
 
+export async function fetchGallery(token) {
+  const r = await api.get('/api/gallery', { params: { token } })
+  return r.data
+}
+
+export function getExportJsonUrl(token) {
+  return `${api.defaults.baseURL}/api/export/json?token=${token}`
+}
+
+export function getExportZipUrl(token) {
+  return `${api.defaults.baseURL}/api/export/zip?token=${token}`
+}
+
 export async function deleteEntry(id, token) {
   const r = await api.delete('/api/entries/' + id, { params: { token } })
   return r.data

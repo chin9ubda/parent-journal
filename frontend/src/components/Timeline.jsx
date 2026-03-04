@@ -47,7 +47,7 @@ export default function Timeline({ token, onViewEntry, onNewEntry }) {
       setHasMore(data.length >= PAGE_SIZE)
       offsetRef.current = offset + data.length
     } catch (err) {
-      console.error('Failed to load entries:', err)
+      console.error('기록 불러오기 실패:', err)
     } finally {
       setLoading(false)
     }

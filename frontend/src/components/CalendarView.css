@@ -90,6 +90,11 @@
   font-weight: 700;
 }
 
+.calendar__cell--milestone {
+  border-color: var(--color-primary-light) !important;
+  background: #FFF8FA !important;
+}
+
 .calendar__cell-day {
   position: absolute;
   right: 8px;
@@ -97,6 +102,20 @@
   font-size: 13px;
   color: var(--color-text-muted);
   font-weight: 500;
+}
+
+.calendar__cell-milestone {
+  position: absolute;
+  left: 4px;
+  top: 5px;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: var(--color-primary-bg);
+  padding: 1px 5px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+  line-height: 1.4;
 }
 
 .calendar__cell-count {

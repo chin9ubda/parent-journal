@@ -21,7 +21,7 @@ def _parse_tags(raw: str) -> str:
 
 @router.post('/entries')
 async def create_entry(
-    body: str = Form(...),
+    body: str = Form(''),
     title: str = Form(None),
     date: str = Form(None),
     tags: str = Form('[]'),
@@ -37,7 +37,7 @@ async def create_entry(
         c = conn.cursor()
         c.execute(
             'INSERT INTO entries(user_id, title, body, date, tags, timeline_label) VALUES(?,?,?,?,?,?)',
-            (uid, title or '', body, dt, tags_json, tl)
+            (uid, title or '', body or '', dt, tags_json, tl)
         )
         eid = c.lastrowid
         save_upload_files(eid, files, conn)
@@ -98,6 +98,26 @@ def list_tags(user: dict = Depends(get_current_user)):
     return sorted(tag_set)
 
 
+@router.get('/gallery')
+def list_gallery(user: dict = Depends(get_current_user)):
+    uid = user['uid']
+    with get_db() as conn:
+        c = conn.cursor()
+        c.execute(
+            'SELECT e.id, e.date, i.filename, i.thumb '
+            'FROM images i JOIN entries e ON i.entry_id = e.id '
+            'WHERE e.user_id=? ORDER BY e.date DESC, e.id DESC',
+            (uid,)
+        )
+        rows = c.fetchall()
+    return [
+        {'entry_id': r[0], 'date': r[1], 'filename': r[2],
+         'original': f'/uploads/{r[0]}/{r[2]}',
+         'thumb': f'/uploads/{r[0]}/{r[3]}' if r[3] else f'/uploads/{r[0]}/{r[2]}'}
+        for r in rows
+    ]
+
+
 @router.get('/timeline')
 def list_timeline(user: dict = Depends(get_current_user)):
     uid = user['uid']
@@ -142,7 +162,7 @@ def get_entry(eid: int, user: dict = Depends(get_current_user)):
 @router.put('/entries/{eid}')
 async def update_entry(
     eid: int,
-    body: str = Form(...),
+    body: str = Form(''),
     date: str = Form(None),
     tags: str = Form(None),
     timeline_label: str = Form(None),

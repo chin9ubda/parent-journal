@@ -48,6 +48,31 @@
   color: var(--color-text-muted);
 }
 
+.editor__prompts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.editor__prompt-btn {
+  text-align: left;
+  padding: 10px 14px;
+  border: 1.5px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-primary-bg);
+  color: var(--color-text-light);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  line-height: 1.4;
+}
+
+.editor__prompt-btn:hover {
+  border-color: var(--color-primary-light);
+  color: var(--color-primary);
+  background: #FFF0F5;
+}
+
 .editor__file-btn {
   display: block;
   position: relative;

@@ -9,7 +9,10 @@ import './TestTracker.css'
 export default function TestTracker({ token }) {
   const [tests, setTests] = useState([])
   const [uploading, setUploading] = useState(false)
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10))
+  const [date, setDate] = useState(() => {
+    const d = new Date()
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0')
+  })
   const [selectedId, setSelectedId] = useState(null)
   const [linePos, setLinePos] = useState({ c: null, t: null })
   const [dragging, setDragging] = useState(null)
@@ -35,7 +38,7 @@ export default function TestTracker({ token }) {
       const data = await fetchTests(token)
       setTests(data)
     } catch (err) {
-      console.error('Failed to load tests:', err)
+      console.error('임태기 불러오기 실패:', err)
     }
   }
 
@@ -99,7 +102,7 @@ export default function TestTracker({ token }) {
       await loadTests()
       handleEditorClose()
     } catch (err) {
-      alert('업로드 실패: ' + (err.response?.data?.detail || err.message))
+      alert('업로드에 실패했습니다. 다시 시도해주세요.')
     } finally {
       setUploading(false)
     }
@@ -112,7 +115,7 @@ export default function TestTracker({ token }) {
       setTests(tests.filter(t => t.id !== id))
       if (selectedId === id) setSelectedId(null)
     } catch (err) {
-      alert('삭제 실패')
+      alert('삭제에 실패했습니다.')
     }
   }
 
@@ -265,7 +268,7 @@ export default function TestTracker({ token }) {
                   await updateTestDate(token, selected.id, newDate)
                   setTests(prev => prev.map(t => t.id === selected.id ? { ...t, date: newDate } : t))
                 } catch (err) {
-                  alert('날짜 변경 실패')
+                  alert('날짜 변경에 실패했습니다.')
                 }
               }}
             />

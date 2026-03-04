@@ -11,6 +11,8 @@ import Editor from './components/Editor'
 import ListModal from './components/ListModal'
 import TestTracker from './components/TestTracker'
 import EventTimeline from './components/EventTimeline'
+import Gallery from './components/Gallery'
+import PregnancyInfo from './components/PregnancyInfo'
 import Settings from './components/Settings'
 import Modal from './components/Modal'
 import './App.css'
@@ -70,7 +72,10 @@ export default function App() {
       )}
 
       {view === 'timeline' && (
-        <Timeline token={token} onViewEntry={id => navigate('detail', id)} onNewEntry={() => openModal()} />
+        <>
+          <PregnancyInfo dueDate={dueDate} />
+          <Timeline token={token} onViewEntry={id => navigate('detail', id)} onNewEntry={() => openModal()} />
+        </>
       )}
 
       {view === 'detail' && (
@@ -88,6 +93,7 @@ export default function App() {
         <CalendarView
           entriesByDate={entriesByDate}
           onOpenDate={handleOpenDate}
+          dueDate={dueDate}
         />
       )}
 
@@ -97,6 +103,10 @@ export default function App() {
 
       {view === 'events' && (
         <EventTimeline token={token} onNavigate={navigate} />
+      )}
+
+      {view === 'gallery' && (
+        <Gallery token={token} onNavigate={navigate} />
       )}
 
       {modal.open && (

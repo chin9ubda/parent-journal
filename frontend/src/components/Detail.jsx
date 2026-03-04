@@ -15,7 +15,7 @@ export default function Detail({ token, id, onBack, onEdit, onDeleted }) {
       const data = await fetchEntry(id, token)
       setEntry(data)
     } catch (err) {
-      console.error('Failed to load entry:', err)
+      console.error('기록 불러오기 실패:', err)
     }
   }
 
@@ -25,7 +25,7 @@ export default function Detail({ token, id, onBack, onEdit, onDeleted }) {
       await deleteEntry(id, token)
       onDeleted()
     } catch (err) {
-      alert('삭제 실패')
+      alert('삭제에 실패했습니다.')
     }
   }
 

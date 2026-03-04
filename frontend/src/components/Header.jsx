@@ -5,6 +5,7 @@ export default function Header({ view, onNavigate, babyName, dueDate, onOpenSett
   const [menuOpen, setMenuOpen] = useState(false)
   const title = babyName ? `${babyName}의 일기` : '육아 일기'
   const dday = dueDate ? calcDday(dueDate) : null
+  const weekInfo = dueDate ? calcWeek(dueDate) : null
 
   const icons = {
     timeline: (
@@ -29,6 +30,13 @@ export default function Header({ view, onNavigate, babyName, dueDate, onOpenSett
         <path d="M9 4h6M9 10.5h6"/>
       </svg>
     ),
+    gallery: (
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="2" width="14" height="14" rx="2"/>
+        <circle cx="6.5" cy="6.5" r="1.5"/>
+        <path d="M16 12l-3.5-3.5L5 16"/>
+      </svg>
+    ),
     settings: (
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="9" cy="9" r="2.5"/><path d="M9 1.5v2M9 14.5v2M3 3l1.2 1.2M13.8 13.8L15 15M1.5 9h2M14.5 9h2M3 15l1.2-1.2M13.8 4.2L15 3"/>
@@ -41,6 +49,7 @@ export default function Header({ view, onNavigate, babyName, dueDate, onOpenSett
     { key: 'calendar', label: '캘린더' },
     { key: 'test', label: '임태기' },
     { key: 'events', label: '타임라인' },
+    { key: 'gallery', label: '갤러리' },
   ]
 
   function handleNav(key) {
@@ -58,7 +67,13 @@ export default function Header({ view, onNavigate, babyName, dueDate, onOpenSett
       <div className="header">
         <div className="header__left">
           <div className="header__title" onClick={() => onNavigate('timeline')}>{title}</div>
-          {dday && <div className="header__dday">{dday}</div>}
+          {(dday || weekInfo) && (
+            <div className="header__sub">
+              {weekInfo && <span className="header__week">{weekInfo}</span>}
+              {weekInfo && dday && <span className="header__sub-sep">·</span>}
+              {dday && <span className="header__dday">{dday}</span>}
+            </div>
+          )}
         </div>
         <button
           className="header__menu-btn"
@@ -112,4 +127,19 @@ function calcDday(dueDate) {
   if (diff > 0) return `D-${diff}`
   if (diff === 0) return 'D-Day'
   return `태어난 지 ${Math.abs(diff)}일`
+}
+
+function calcWeek(dueDate) {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const due = new Date(dueDate + 'T00:00:00')
+  // 임신 기간 = 280일 (40주)
+  const conceptionOffset = 280
+  const start = new Date(due)
+  start.setDate(start.getDate() - conceptionOffset)
+  const elapsed = Math.floor((today - start) / (1000 * 60 * 60 * 24))
+  if (elapsed < 0 || elapsed > conceptionOffset) return null
+  const weeks = Math.floor(elapsed / 7)
+  const days = elapsed % 7
+  return `${weeks}주 ${days}일`
 }

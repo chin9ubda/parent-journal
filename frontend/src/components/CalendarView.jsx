@@ -4,7 +4,23 @@ import './CalendarView.css'
 
 const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
 
-export default function CalendarView({ entriesByDate, onOpenDate }) {
+function buildMilestones(dueDate) {
+  if (!dueDate) return {}
+  const due = new Date(dueDate + 'T00:00:00')
+  const fmt = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
+  const addDays = (d, n) => { const r = new Date(d); r.setDate(r.getDate() + n); return r }
+  const milestones = {}
+  // 출산예정일
+  milestones[fmt(due)] = '출산예정일'
+  // 출생 후 기념일 (예정일 기준)
+  milestones[fmt(addDays(due, 100))] = '백일'
+  milestones[fmt(addDays(due, 365))] = '첫돌'
+  milestones[fmt(addDays(due, 50))] = '50일'
+  milestones[fmt(addDays(due, 200))] = '200일'
+  return milestones
+}
+
+export default function CalendarView({ entriesByDate, onOpenDate, dueDate }) {
   const [yearMonth, setYearMonth] = useState(() => {
     const d = new Date()
     return { y: d.getFullYear(), m: d.getMonth() }
@@ -18,7 +34,8 @@ export default function CalendarView({ entriesByDate, onOpenDate }) {
     setYearMonth(({ y, m }) => m === 11 ? { y: y + 1, m: 0 } : { y, m: m + 1 })
   }
 
-  const todayStr = new Date().toISOString().slice(0, 10)
+  const todayStr = (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0') })()
+  const milestones = buildMilestones(dueDate)
   const startDay = new Date(yearMonth.y, yearMonth.m, 1).getDay()
   const daysInMonth = new Date(yearMonth.y, yearMonth.m + 1, 0).getDate()
   const totalCells = startDay + daysInMonth
@@ -63,12 +80,15 @@ export default function CalendarView({ entriesByDate, onOpenDate }) {
           {weeks.flat().map(cell => (
             <div
               key={cell.key}
-              className={`calendar__cell ${cell.inMonth ? 'calendar__cell--active' : ''} ${cell.key === todayStr ? 'calendar__cell--today' : ''}`}
+              className={`calendar__cell ${cell.inMonth ? 'calendar__cell--active' : ''} ${cell.key === todayStr ? 'calendar__cell--today' : ''} ${milestones[cell.key] ? 'calendar__cell--milestone' : ''}`}
               onClick={() => cell.inMonth && onOpenDate(cell.key)}
             >
               {cell.inMonth && (
                 <>
                   <div className="calendar__cell-day">{cell.day}</div>
+                  {milestones[cell.key] && (
+                    <div className="calendar__cell-milestone">{milestones[cell.key]}</div>
+                  )}
                   {cell.entries.length > 0 && (
                     <div className="calendar__cell-count">{cell.entries.length}개</div>
                   )}

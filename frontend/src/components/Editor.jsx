@@ -1,10 +1,24 @@
 import { useState, useEffect } from 'react'
 import { fetchEntry, fetchTags, createEntry, updateEntry } from '../api'
+import { todayKey } from '../utils/date'
 import { getUploadUrl } from '../utils/url'
 import './Editor.css'
 
+const PROMPTS = [
+  '오늘 아기(또는 배 속 아기)에게 하고 싶은 말이 있나요?',
+  '오늘 가장 기억에 남는 순간은?',
+  '오늘의 컨디션은 어떠셨나요?',
+  '오늘 처음 경험한 것이 있나요?',
+  '지금 이 순간의 기분을 한 문장으로 표현한다면?',
+  '오늘 감사한 것 하나를 적어볼까요?',
+  '아기에게 들려주고 싶은 이야기가 있나요?',
+  '오늘 먹은 것 중 가장 맛있었던 것은?',
+  '오늘 병원에서 있었던 일을 기록해볼까요?',
+  '태동을 느꼈나요? 어떤 느낌이었나요?',
+]
+
 export default function Editor({ token, onDone, editId, initialDate }) {
-  const [date, setDate] = useState(initialDate || new Date().toISOString().slice(0, 10))
+  const [date, setDate] = useState(initialDate || todayKey())
   const [body, setBody] = useState('')
   const [files, setFiles] = useState([])
   const [keepImages, setKeepImages] = useState([])
@@ -14,6 +28,10 @@ export default function Editor({ token, onDone, editId, initialDate }) {
   const [allTags, setAllTags] = useState([])
   const [isTimeline, setIsTimeline] = useState(false)
   const [timelineLabel, setTimelineLabel] = useState('')
+  const [prompts] = useState(() => {
+    const shuffled = [...PROMPTS].sort(() => Math.random() - 0.5)
+    return shuffled.slice(0, 3)
+  })
 
   useEffect(() => {
     if (token) fetchTags(token).then(setAllTags).catch(() => {})
@@ -33,7 +51,7 @@ export default function Editor({ token, onDone, editId, initialDate }) {
           }
           setKeepImages((data.images || []).map(i => i.filename || i.original.split('/').pop()))
         } catch (err) {
-          console.error('Failed to load entry:', err)
+          console.error('기록 불러오기 실패:', err)
         }
       })()
     }
@@ -68,7 +86,7 @@ export default function Editor({ token, onDone, editId, initialDate }) {
         onDone(data?.id || null)
       }
     } catch (err) {
-      alert(editId ? '수정 실패' : '저장 실패: ' + (err.response?.statusText || err.message))
+      alert(editId ? '수정에 실패했습니다.' : '저장에 실패했습니다. 다시 시도해주세요.')
     } finally {
       setSaving(false)
     }
@@ -92,6 +110,20 @@ export default function Editor({ token, onDone, editId, initialDate }) {
         />
 
         <label className="editor__label">내용</label>
+        {!editId && !body && (
+          <div className="editor__prompts">
+            {prompts.map((p, i) => (
+              <button
+                key={i}
+                type="button"
+                className="editor__prompt-btn"
+                onClick={() => setBody(p + '\n\n')}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+        )}
         <textarea
           className="editor__textarea"
           placeholder="오늘의 순간을 적어보세요..."

@@ -28,11 +28,28 @@
   cursor: pointer;
 }
 
+.header__sub {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.header__week {
+  font-size: 12px;
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.header__sub-sep {
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+
 .header__dday {
   font-size: 12px;
   color: var(--color-primary-light);
   font-weight: 600;
-  margin-top: 2px;
 }
 
 .header__menu-btn {

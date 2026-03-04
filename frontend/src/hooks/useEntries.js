@@ -11,7 +11,7 @@ export default function useEntries(token) {
       const data = await fetchEntries(token)
       setEntriesByDate(groupEntriesByDate(data))
     } catch (err) {
-      console.error('Failed to load entries:', err)
+      console.error('기록 불러오기 실패:', err)
     }
   }, [token])
 
