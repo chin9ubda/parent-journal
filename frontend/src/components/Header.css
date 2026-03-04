@@ -152,10 +152,16 @@
 }
 
 .drawer__icon {
-  font-size: 18px;
   width: 24px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.drawer__item--active .drawer__icon {
+  color: var(--color-primary);
 }
 
 .drawer__divider {

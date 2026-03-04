@@ -1,75 +1,117 @@
-.login {
-  max-width: 400px;
-  margin: 80px auto 40px;
-  padding: 36px 32px;
+.login-page {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #FFF5F7 0%, #FFF0F5 40%, #F8F0FF 100%);
+  padding: 20px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 360px;
+  padding: 40px 32px 32px;
   border-radius: var(--radius-xl);
-  background: linear-gradient(145deg, #FFFFFF 0%, #FFF8FA 100%);
-  box-shadow: var(--shadow-lg);
+  background: var(--color-white);
+  box-shadow: 0 8px 32px rgba(180, 120, 160, 0.12);
   text-align: center;
   border: 1px solid var(--color-border-light);
 }
 
-.login h2 {
-  font-size: 28px;
-  color: var(--color-primary);
-  margin-bottom: 4px;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-}
-
-.login form {
-  margin-top: 24px;
-}
-
-.login__field {
+.login-card__logo {
   margin-bottom: 16px;
-  text-align: left;
 }
 
-.login__field label {
-  display: block;
-  margin-bottom: 6px;
+.login-card__title {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--color-primary);
+  letter-spacing: -0.5px;
+  margin: 0 0 4px;
+}
+
+.login-card__subtitle {
   font-size: 13px;
-  color: var(--color-text-light);
-  font-weight: 500;
+  color: var(--color-text-muted);
+  margin: 0 0 28px;
 }
 
-.login__field input[type="text"],
-.login__field input[type="password"] {
+.login-card__form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.login-card__input-group {
+  position: relative;
+}
+
+.login-card__input {
   width: 100%;
-  padding: 12px 14px;
-  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
   border: 1.5px solid var(--color-border);
-  background: var(--color-white);
+  background: var(--color-bg-page);
   font-size: 15px;
   color: var(--color-text);
+  transition: border-color 0.2s, background 0.2s;
+  box-sizing: border-box;
 }
 
-.login__field input[type="text"]::placeholder,
-.login__field input[type="password"]::placeholder {
+.login-card__input:focus {
+  outline: none;
+  border-color: var(--color-primary-light);
+  background: var(--color-white);
+}
+
+.login-card__input::placeholder {
   color: var(--color-text-muted);
 }
 
-.login__field input[type="checkbox"] {
-  accent-color: var(--color-primary);
-  width: 16px;
-  height: 16px;
-  vertical-align: middle;
-  margin-right: 4px;
-}
-
-.login__error {
-  color: var(--color-primary);
+.login-card__error {
   font-size: 13px;
-  margin-bottom: 12px;
-  padding: 8px 12px;
+  color: var(--color-primary);
   background: var(--color-primary-bg);
+  padding: 10px 14px;
   border-radius: var(--radius-sm);
+  text-align: left;
 }
 
-.login .btn--primary {
+.login-card__submit {
   width: 100%;
   padding: 14px;
-  font-size: 16px;
-  margin-top: 8px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  margin-top: 4px;
+}
+
+.login-card__submit:hover {
+  background: var(--color-primary-light);
+}
+
+.login-card__submit:active {
+  transform: scale(0.98);
+}
+
+.login-card__auto {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.login-card__auto input[type="checkbox"] {
+  accent-color: var(--color-primary);
+  width: 15px;
+  height: 15px;
 }
