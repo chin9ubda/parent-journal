@@ -19,6 +19,7 @@ export default function TestTracker({ token }) {
   const [imgScale, setImgScale] = useState(1)
   const [adjusting, setAdjusting] = useState(false)
   const [showGuides, setShowGuides] = useState(true)
+  const [showAll, setShowAll] = useState(false)
   const [originalSrc, setOriginalSrc] = useState(null)
   const [rotatedSrc, setRotatedSrc] = useState(null)
   const [rotation, setRotation] = useState(0)
@@ -204,8 +205,16 @@ export default function TestTracker({ token }) {
             onChange={handleFileSelect}
             disabled={uploading}
           />
-          {uploading ? '분석 중...' : '📷 임태기 사진 선택'}
+          {uploading ? '분석 중...' : '📷 임태기 사진 등록'}
         </label>
+        {tests.length > 1 && (
+          <button
+            className="test-tracker__compare-btn"
+            onClick={() => setShowAll(true)}
+          >
+            모아보기
+          </button>
+        )}
       </div>
 
       {/* Progress chart — line chart */}
@@ -395,6 +404,34 @@ export default function TestTracker({ token }) {
           </div>
         )}
       </div>
+      {showAll && (
+        <div className="test-compare-overlay" onClick={() => setShowAll(false)}>
+          <div className="test-compare" onClick={e => e.stopPropagation()}>
+            <div className="test-compare__header">
+              <span className="test-compare__title">임태기 모아보기</span>
+              <button className="test-compare__close" onClick={() => setShowAll(false)}>&times;</button>
+            </div>
+            <div className="test-compare__list">
+              {[...tests].reverse().map(t => (
+                <div key={t.id} className="test-compare__item">
+                  <div className="test-compare__label">
+                    <span className="test-compare__date">{t.date}</span>
+                    {t.ratio != null && <span className="test-compare__ratio">T/C {t.ratio.toFixed(2)}</span>}
+                  </div>
+                  {t.cropped_url && (
+                    <img
+                      src={getUploadUrl(t.cropped_url)}
+                      alt={t.date}
+                      className="test-compare__img"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {originalSrc && (
         <div className="test-editor-overlay">
           <div className="test-editor-crop-area">
