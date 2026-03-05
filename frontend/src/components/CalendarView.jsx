@@ -89,16 +89,18 @@ export default function CalendarView({ entriesByDate, onOpenDate, dueDate }) {
                   {milestones[cell.key] && (
                     <div className="calendar__cell-milestone">{milestones[cell.key]}</div>
                   )}
-                  {cell.entries.length > 0 && (
-                    <div className="calendar__cell-count">{cell.entries.length}개</div>
-                  )}
-                  {getThumbUrl(cell.entries) && (
-                    <img
-                      src={getThumbUrl(cell.entries)}
-                      alt=""
-                      className="calendar__cell-thumb"
-                    />
-                  )}
+                  <div className="calendar__cell-bottom">
+                    {cell.entries.length > 0 ? (
+                      <div className="calendar__cell-count">{cell.entries.length}개</div>
+                    ) : <span />}
+                    {getThumbUrl(cell.entries) && (
+                      <img
+                        src={getThumbUrl(cell.entries)}
+                        alt=""
+                        className="calendar__cell-thumb"
+                      />
+                    )}
+                  </div>
                 </>
               )}
             </div>
