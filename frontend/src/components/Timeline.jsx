@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { fetchEntries, fetchTags } from '../api'
+import { getUploadUrl } from '../utils/url'
 import { localDateKey } from '../utils/date'
 import './Timeline.css'
 
@@ -147,17 +148,27 @@ export default function Timeline({ token, onViewEntry, onNewEntry }) {
           ) : (
             <div
               key={row.data.id}
-              className="timeline__card"
+              className={`timeline__card ${row.data.thumb ? 'timeline__card--has-thumb' : ''}`}
               onClick={() => onViewEntry(row.data.id)}
             >
-              {row.data.tags?.length > 0 && (
-                <div className="timeline__card-tags">
-                  {row.data.tags.map(t => (
-                    <span key={t} className="timeline__card-tag">#{t}</span>
-                  ))}
-                </div>
+              <div className="timeline__card-content">
+                {row.data.tags?.length > 0 && (
+                  <div className="timeline__card-tags">
+                    {row.data.tags.map(t => (
+                      <span key={t} className="timeline__card-tag">#{t}</span>
+                    ))}
+                  </div>
+                )}
+                <p className="timeline__body">{row.data.body.slice(0, 200)}</p>
+              </div>
+              {row.data.thumb && (
+                <img
+                  src={getUploadUrl(row.data.thumb)}
+                  alt=""
+                  className="timeline__card-thumb"
+                  loading="lazy"
+                />
               )}
-              <p className="timeline__body">{row.data.body.slice(0, 200)}</p>
             </div>
           )
         )}

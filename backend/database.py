@@ -48,4 +48,33 @@ def init_db():
             c.execute("ALTER TABLE test_analyses ADD COLUMN c_line_x INTEGER")
         if 't_line_x' not in test_cols:
             c.execute("ALTER TABLE test_analyses ADD COLUMN t_line_x INTEGER")
+        # Growth records table
+        c.execute('''CREATE TABLE IF NOT EXISTS growth_records
+            (id INTEGER PRIMARY KEY, user_id INTEGER REFERENCES users(id),
+             date TEXT, height REAL, weight REAL,
+             created_at TEXT DEFAULT CURRENT_TIMESTAMP)''')
+        # Care records table (feeding / sleep / diaper)
+        c.execute('''CREATE TABLE IF NOT EXISTS care_records
+            (id INTEGER PRIMARY KEY, user_id INTEGER REFERENCES users(id),
+             category TEXT, datetime TEXT,
+             feeding_type TEXT, amount_ml REAL, duration_min REAL,
+             end_datetime TEXT,
+             diaper_type TEXT,
+             created_at TEXT DEFAULT CURRENT_TIMESTAMP)''')
+        # Baby food records table
+        c.execute('''CREATE TABLE IF NOT EXISTS babyfood_records
+            (id INTEGER PRIMARY KEY, user_id INTEGER REFERENCES users(id),
+             date TEXT, ingredient TEXT, reaction TEXT, memo TEXT,
+             created_at TEXT DEFAULT CURRENT_TIMESTAMP)''')
+        # Hospital records table
+        c.execute('''CREATE TABLE IF NOT EXISTS hospital_records
+            (id INTEGER PRIMARY KEY, user_id INTEGER REFERENCES users(id),
+             date TEXT, hospital_name TEXT, department TEXT, memo TEXT,
+             created_at TEXT DEFAULT CURRENT_TIMESTAMP)''')
+        # Vaccination records table
+        c.execute('''CREATE TABLE IF NOT EXISTS vaccination_records
+            (id INTEGER PRIMARY KEY, user_id INTEGER REFERENCES users(id),
+             vaccine_name TEXT, dose_number INTEGER,
+             scheduled_age_months INTEGER, date_completed TEXT, memo TEXT,
+             created_at TEXT DEFAULT CURRENT_TIMESTAMP)''')
         conn.commit()

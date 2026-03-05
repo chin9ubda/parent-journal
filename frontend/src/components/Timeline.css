@@ -140,6 +140,25 @@
   border: 1.5px solid transparent;
 }
 
+.timeline__card--has-thumb {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.timeline__card-thumb {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.timeline__card-content {
+  flex: 1;
+  min-width: 0;
+}
+
 .timeline__card:hover {
   border-color: var(--color-primary-light);
   box-shadow: var(--shadow-md);

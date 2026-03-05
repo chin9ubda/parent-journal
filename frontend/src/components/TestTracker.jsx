@@ -29,6 +29,7 @@ export default function TestTracker({ token }) {
   const editorImgRef = useRef(null)
   const rotateTimerRef = useRef(null)
   const imgRef = useRef(null)
+  const chartScrollRef = useRef(null)
 
   useEffect(() => {
     if (token) loadTests()
@@ -53,6 +54,20 @@ export default function TestTracker({ token }) {
     setCrop(undefined)
     setCompletedCrop(null)
   }
+
+  // Lock body scroll when overlay is open
+  useEffect(() => {
+    if (showAll || originalSrc) {
+      document.body.style.overflow = 'hidden'
+      return () => { document.body.style.overflow = '' }
+    }
+  }, [showAll, originalSrc])
+
+  // Scroll chart to the right (latest data) on load
+  useEffect(() => {
+    const el = chartScrollRef.current
+    if (el) el.scrollLeft = el.scrollWidth
+  }, [tests])
 
   // Debounced rotation — generates a rotated image 200ms after slider stops
   useEffect(() => {
@@ -235,7 +250,7 @@ export default function TestTracker({ token }) {
         return (
           <div className="test-tracker__chart">
             <div className="test-tracker__chart-title">진하기 변화</div>
-            <div className="test-tracker__chart-scroll">
+            <div className="test-tracker__chart-scroll" ref={chartScrollRef}>
               <svg width={chartW} height={chartH} className="test-tracker__line-svg">
                 <line x1={pad.left} y1={pad.top + plotH} x2={pad.left + plotW} y2={pad.top + plotH}
                   stroke="var(--color-border)" strokeWidth="1" />

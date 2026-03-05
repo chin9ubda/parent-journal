@@ -1,0 +1,175 @@
+.vacc-tracker {
+  padding: 20px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* Progress card */
+.vacc-tracker__progress-card {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.vacc-tracker__progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.vacc-tracker__progress-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.vacc-tracker__progress-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.vacc-tracker__progress-bar {
+  height: 8px;
+  background: var(--color-border);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.vacc-tracker__progress-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: var(--radius-pill);
+  transition: width 0.3s ease;
+}
+
+.vacc-tracker__progress-pct {
+  text-align: right;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}
+
+/* Group */
+.vacc-tracker__group {
+  margin-bottom: 16px;
+}
+
+.vacc-tracker__group-header {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-primary);
+  padding: 8px 0;
+  border-bottom: 2px solid var(--color-primary);
+  margin-bottom: 8px;
+}
+
+.vacc-tracker__group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Item */
+.vacc-tracker__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--color-card);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  box-shadow: var(--shadow-xs);
+  transition: all var(--transition-fast);
+}
+
+.vacc-tracker__item--done {
+  background: var(--color-primary-bg);
+}
+
+.vacc-tracker__item--done .vacc-tracker__item-name {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+/* Custom checkbox */
+.vacc-tracker__check {
+  position: relative;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.vacc-tracker__check input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.vacc-tracker__checkmark {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.vacc-tracker__check input:checked + .vacc-tracker__checkmark {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.vacc-tracker__check input:checked + .vacc-tracker__checkmark::after {
+  content: '';
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  margin-top: -2px;
+}
+
+/* Item info */
+.vacc-tracker__item-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.vacc-tracker__item-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.vacc-tracker__item-dose {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--color-primary);
+}
+
+/* Date input */
+.vacc-tracker__date {
+  padding: 4px 8px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--color-text);
+  background: var(--color-white);
+  flex-shrink: 0;
+  max-width: 130px;
+}

@@ -1,0 +1,236 @@
+.dashboard {
+  padding: 20px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.dashboard__loading {
+  text-align: center;
+  padding: 40px;
+  color: var(--color-text-muted);
+}
+
+/* Grid layout */
+.dashboard__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+/* Card */
+.dashboard__card {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 1.5px solid transparent;
+}
+
+.dashboard__card:hover {
+  border-color: var(--color-primary-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.dashboard__card--actions {
+  cursor: default;
+}
+
+.dashboard__card--actions:hover {
+  transform: none;
+  border-color: transparent;
+  box-shadow: var(--shadow-sm);
+}
+
+.dashboard__card-icon {
+  color: var(--color-primary);
+  margin-bottom: 8px;
+}
+
+.dashboard__card-icon--vacc {
+  color: #10b981;
+}
+
+.dashboard__card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-light);
+  margin-bottom: 10px;
+}
+
+.dashboard__card-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.dashboard__card-empty {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+/* Stats */
+.dashboard__stat {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.dashboard__stat-val {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1;
+}
+
+.dashboard__stat-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.dashboard__stat-date {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  width: 100%;
+}
+
+/* Vaccination progress */
+.dashboard__vacc-progress {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dashboard__vacc-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--color-border);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.dashboard__vacc-fill {
+  height: 100%;
+  background: #10b981;
+  border-radius: var(--radius-pill);
+  transition: width 0.3s ease;
+}
+
+.dashboard__vacc-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+.dashboard__vacc-next {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  width: 100%;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.dashboard__vacc-next strong {
+  color: var(--color-text);
+}
+
+/* Quick actions */
+.dashboard__quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dashboard__quick-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.dashboard__quick-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.dashboard__quick-btn svg {
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+/* Recent entries — full width */
+.dashboard__entries {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+
+.dashboard__entries-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-light);
+  margin-bottom: 12px;
+}
+
+.dashboard__entries-more {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-primary);
+}
+
+.dashboard__entry {
+  padding: 10px 0;
+  border-top: 1px solid var(--color-border);
+  cursor: pointer;
+}
+
+.dashboard__entry:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.dashboard__entry-date {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-bottom: 2px;
+}
+
+.dashboard__entry-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 2px;
+}
+
+.dashboard__entry-preview {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+/* Mobile single column */
+@media (max-width: 480px) {
+  .dashboard__grid {
+    grid-template-columns: 1fr;
+  }
+}

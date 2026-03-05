@@ -55,6 +55,19 @@ export function getExportZipUrl(token) {
   return `${api.defaults.baseURL}/api/export/zip?token=${token}`
 }
 
+export function getExportPdfUrl(token) {
+  return `${api.defaults.baseURL}/api/export/pdf?token=${token}`
+}
+
+export async function changePassword(token, current, newPw) {
+  const form = new FormData()
+  form.append('token', token)
+  form.append('current', current)
+  form.append('new', newPw)
+  const r = await api.post('/api/change-password', form)
+  return r.data
+}
+
 export async function deleteEntry(id, token) {
   const r = await api.delete('/api/entries/' + id, { params: { token } })
   return r.data
@@ -97,6 +110,112 @@ export async function adjustTestLines(token, id, c_line_x, t_line_x) {
 
 export async function deleteTest(id, token) {
   const r = await api.delete('/api/tests/' + id, { params: { token } })
+  return r.data
+}
+
+export async function fetchGrowthRecords(token) {
+  const r = await api.get('/api/growth', { params: { token } })
+  return r.data
+}
+
+export async function createGrowthRecord(token, data) {
+  const r = await api.post('/api/growth', data, { params: { token } })
+  return r.data
+}
+
+export async function updateGrowthRecord(token, id, data) {
+  const r = await api.put(`/api/growth/${id}`, data, { params: { token } })
+  return r.data
+}
+
+export async function deleteGrowthRecord(id, token) {
+  const r = await api.delete(`/api/growth/${id}`, { params: { token } })
+  return r.data
+}
+
+// Care records (feeding / sleep / diaper)
+export async function fetchCareRecords(token, category) {
+  const params = { token }
+  if (category) params.category = category
+  const r = await api.get('/api/care', { params })
+  return r.data
+}
+
+export async function fetchCareSummary(token, date) {
+  const r = await api.get('/api/care/summary', { params: { token, date } })
+  return r.data
+}
+
+export async function createCareRecord(token, data) {
+  const r = await api.post('/api/care', data, { params: { token } })
+  return r.data
+}
+
+export async function updateCareRecord(token, id, data) {
+  const r = await api.put(`/api/care/${id}`, data, { params: { token } })
+  return r.data
+}
+
+export async function deleteCareRecord(id, token) {
+  const r = await api.delete(`/api/care/${id}`, { params: { token } })
+  return r.data
+}
+
+// Baby food records
+export async function fetchBabyfoodRecords(token) {
+  const r = await api.get('/api/babyfood', { params: { token } })
+  return r.data
+}
+
+export async function createBabyfoodRecord(token, data) {
+  const r = await api.post('/api/babyfood', data, { params: { token } })
+  return r.data
+}
+
+export async function updateBabyfoodRecord(token, id, data) {
+  const r = await api.put(`/api/babyfood/${id}`, data, { params: { token } })
+  return r.data
+}
+
+export async function deleteBabyfoodRecord(id, token) {
+  const r = await api.delete(`/api/babyfood/${id}`, { params: { token } })
+  return r.data
+}
+
+// Hospital records
+export async function fetchHospitalRecords(token) {
+  const r = await api.get('/api/hospital', { params: { token } })
+  return r.data
+}
+
+export async function createHospitalRecord(token, data) {
+  const r = await api.post('/api/hospital', data, { params: { token } })
+  return r.data
+}
+
+export async function updateHospitalRecord(token, id, data) {
+  const r = await api.put(`/api/hospital/${id}`, data, { params: { token } })
+  return r.data
+}
+
+export async function deleteHospitalRecord(id, token) {
+  const r = await api.delete(`/api/hospital/${id}`, { params: { token } })
+  return r.data
+}
+
+// Vaccination records
+export async function fetchVaccinations(token) {
+  const r = await api.get('/api/vaccinations', { params: { token } })
+  return r.data
+}
+
+export async function createVaccination(token, data) {
+  const r = await api.post('/api/vaccinations', data, { params: { token } })
+  return r.data
+}
+
+export async function deleteVaccination(id, token) {
+  const r = await api.delete(`/api/vaccinations/${id}`, { params: { token } })
   return r.data
 }
 

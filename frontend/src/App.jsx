@@ -12,7 +12,10 @@ import ListModal from './components/ListModal'
 import TestTracker from './components/TestTracker'
 import EventTimeline from './components/EventTimeline'
 import Gallery from './components/Gallery'
-import PregnancyInfo from './components/PregnancyInfo'
+import GrowthTracker from './components/GrowthTracker'
+import CareTracker from './components/CareTracker'
+import Dashboard from './components/Dashboard'
+import VaccinationTracker from './components/VaccinationTracker'
 import Settings from './components/Settings'
 import Modal from './components/Modal'
 import './App.css'
@@ -30,7 +33,7 @@ export default function App() {
 
   if (!token) return <Login onLogin={login} />
 
-  const showHeader = view !== 'detail' && !settingsOpen
+  const showHeader = view !== 'detail'
 
   function handleOpenDate(dateKey) {
     openModal({ date: dateKey, fromCalendar: true })
@@ -47,7 +50,7 @@ export default function App() {
   }
 
   function handleEntryDeleted() {
-    navigate('timeline')
+    navigate('dashboard')
     loadEntries()
   }
 
@@ -71,11 +74,17 @@ export default function App() {
         />
       )}
 
+      {view === 'dashboard' && (
+        <Dashboard
+          token={token}
+          dueDate={dueDate}
+          onNavigate={navigate}
+          onNewEntry={() => openModal()}
+        />
+      )}
+
       {view === 'timeline' && (
-        <>
-          <PregnancyInfo dueDate={dueDate} />
-          <Timeline token={token} onViewEntry={id => navigate('detail', id)} onNewEntry={() => openModal()} />
-        </>
+        <Timeline token={token} onViewEntry={id => navigate('detail', id)} onNewEntry={() => openModal()} />
       )}
 
       {view === 'detail' && (
@@ -107,6 +116,18 @@ export default function App() {
 
       {view === 'gallery' && (
         <Gallery token={token} onNavigate={navigate} />
+      )}
+
+      {view === 'growth' && (
+        <GrowthTracker token={token} />
+      )}
+
+      {view === 'care' && (
+        <CareTracker token={token} />
+      )}
+
+      {view === 'vaccination' && (
+        <VaccinationTracker token={token} />
       )}
 
       {modal.open && (

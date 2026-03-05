@@ -1,0 +1,232 @@
+.growth-tracker {
+  padding: 20px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* Form */
+.growth-tracker__form {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.growth-tracker__date-input {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-white);
+  font-size: 14px;
+  color: var(--color-text);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.growth-tracker__inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.growth-tracker__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.growth-tracker__field span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-light);
+}
+
+.growth-tracker__field input {
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-white);
+  font-size: 14px;
+  color: var(--color-text);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.growth-tracker__form-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.growth-tracker__submit-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.growth-tracker__submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.growth-tracker__cancel-btn {
+  padding: 10px 16px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: none;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+/* Tabs + Chart */
+.growth-tracker__chart-section {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.growth-tracker__tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.growth-tracker__tab {
+  flex: 1;
+  padding: 6px 0;
+  background: none;
+  border: none;
+  border-bottom: 2.5px solid transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.growth-tracker__tab--active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+.growth-tracker__chart-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.growth-tracker__svg {
+  display: block;
+}
+
+.growth-tracker__axis-label {
+  font-size: 9px;
+  fill: var(--color-text-muted);
+}
+
+.growth-tracker__chart-date {
+  font-size: 10px;
+  fill: var(--color-text-muted);
+}
+
+.growth-tracker__chart-val {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* Record list */
+.growth-tracker__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.growth-tracker__card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--color-card);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  box-shadow: var(--shadow-xs);
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: all var(--transition-fast);
+}
+
+.growth-tracker__card:hover {
+  border-color: var(--color-primary-light);
+  transform: translateX(4px);
+}
+
+.growth-tracker__card--active {
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
+}
+
+.growth-tracker__card-date {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  flex-shrink: 0;
+  min-width: 90px;
+}
+
+.growth-tracker__card-values {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.growth-tracker__card-val {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+}
+
+.growth-tracker__card-val--height {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--color-primary);
+}
+
+.growth-tracker__card-val--weight {
+  background: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+}
+
+.growth-tracker__card-delete {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.growth-tracker__card-delete:hover {
+  color: #ff4444;
+}
+
+.growth-tracker__empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  line-height: 1.8;
+}

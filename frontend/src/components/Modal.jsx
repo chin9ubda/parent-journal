@@ -1,6 +1,12 @@
+import { useEffect } from 'react'
 import './Modal.css'
 
 export default function Modal({ onClose, wide, children }) {
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [])
+
   return (
     <div className="modal-overlay">
       <div className="modal-backdrop" onClick={onClose} />

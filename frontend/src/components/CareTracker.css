@@ -1,0 +1,292 @@
+.care-tracker {
+  padding: 20px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* Tabs */
+.care-tracker__tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 16px;
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  padding: 4px;
+  box-shadow: var(--shadow-sm);
+}
+
+.care-tracker__tab {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.care-tracker__tab--active {
+  background: var(--color-primary);
+  color: white;
+}
+
+/* Summary */
+.care-tracker__summary {
+  background: var(--color-primary-bg);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+/* Form */
+.care-tracker__form {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.care-tracker__form input[type="datetime-local"],
+.care-tracker__form input[type="date"],
+.care-tracker__form input[type="text"],
+.care-tracker__form input[type="number"],
+.care-tracker__form select,
+.care-tracker__form textarea {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-white);
+  font-size: 14px;
+  color: var(--color-text);
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.care-tracker__form textarea {
+  resize: vertical;
+  min-height: 48px;
+}
+
+.care-tracker__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 8px;
+}
+
+.care-tracker__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.care-tracker__field span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-light);
+}
+
+.care-tracker__calc {
+  font-size: 13px;
+  color: var(--color-primary);
+  font-weight: 600;
+  text-align: center;
+}
+
+.care-tracker__form-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.care-tracker__submit {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.care-tracker__submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.care-tracker__cancel {
+  padding: 10px 16px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: none;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+/* List */
+.care-tracker__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.care-tracker__card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-card);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  box-shadow: var(--shadow-xs);
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: all var(--transition-fast);
+  flex-wrap: wrap;
+}
+
+.care-tracker__card:hover {
+  border-color: var(--color-primary-light);
+  transform: translateX(4px);
+}
+
+.care-tracker__card--active {
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
+}
+
+.care-tracker__card-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.care-tracker__card-date {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  flex-shrink: 0;
+}
+
+.care-tracker__card-time {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.care-tracker__card-ingredient {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.care-tracker__card-hospital {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.care-tracker__card-memo {
+  width: 100%;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+  padding-left: 0;
+}
+
+.care-tracker__card-delete {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.care-tracker__card-delete:hover {
+  color: #ff4444;
+}
+
+/* Badges */
+.care-tracker__badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--color-primary);
+}
+
+.care-tracker__badge--pee {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.care-tracker__badge--poo {
+  background: rgba(180, 83, 9, 0.1);
+  color: #b45309;
+}
+
+.care-tracker__badge--mix {
+  background: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+}
+
+.care-tracker__val {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+/* Reaction badges */
+.care-tracker__reaction {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+}
+
+.care-tracker__reaction--good {
+  background: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+}
+
+.care-tracker__reaction--normal {
+  background: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+}
+
+.care-tracker__reaction--allergy {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+/* Empty state */
+.care-tracker__empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  line-height: 1.8;
+}

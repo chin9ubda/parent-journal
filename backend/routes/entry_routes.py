@@ -69,12 +69,20 @@ def list_entries(
         params.extend([limit, offset])
         c.execute(sql, params)
         rows = c.fetchall()
-    return [
-        {'id': r[0], 'title': r[1], 'body': r[2], 'date': r[3],
-         'tags': json.loads(r[4]) if r[4] else [],
-         'timeline_label': r[5]}
-        for r in rows
-    ]
+        results = []
+        for r in rows:
+            eid = r[0]
+            c2 = conn.cursor()
+            c2.execute('SELECT thumb FROM images WHERE entry_id=? LIMIT 1', (eid,))
+            thumb_row = c2.fetchone()
+            thumb = f'/uploads/{eid}/{thumb_row[0]}' if thumb_row else None
+            results.append({
+                'id': eid, 'title': r[1], 'body': r[2], 'date': r[3],
+                'tags': json.loads(r[4]) if r[4] else [],
+                'timeline_label': r[5],
+                'thumb': thumb,
+            })
+    return results
 
 
 @router.get('/tags')

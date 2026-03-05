@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 
 export default function useNavigation() {
-  const [view, setView] = useState('timeline')
+  const [view, setView] = useState('dashboard')
   const [viewId, setViewId] = useState(null)
   const [modal, setModal] = useState({
     open: false, editId: null, date: null, fromCalendar: false
@@ -10,7 +10,7 @@ export default function useNavigation() {
 
   useEffect(() => {
     if (!history.state?.view) {
-      history.replaceState({ view: 'timeline', modal: false }, '')
+      history.replaceState({ view: 'dashboard', modal: false }, '')
     }
 
     function onPopState() {

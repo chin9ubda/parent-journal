@@ -1,13 +1,26 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './Header.css'
 
 export default function Header({ view, onNavigate, babyName, dueDate, onOpenSettings }) {
   const [menuOpen, setMenuOpen] = useState(false)
+
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = 'hidden'
+      return () => { document.body.style.overflow = '' }
+    }
+  }, [menuOpen])
   const title = babyName ? `${babyName}의 일기` : '육아 일기'
   const dday = dueDate ? calcDday(dueDate) : null
   const weekInfo = dueDate ? calcWeek(dueDate) : null
 
   const icons = {
+    dashboard: (
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="2" width="6" height="6" rx="1"/><rect x="10" y="2" width="6" height="6" rx="1"/>
+        <rect x="2" y="10" width="6" height="6" rx="1"/><rect x="10" y="10" width="6" height="6" rx="1"/>
+      </svg>
+    ),
     timeline: (
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 4h12M3 9h8M3 14h10"/>
@@ -37,6 +50,23 @@ export default function Header({ view, onNavigate, babyName, dueDate, onOpenSett
         <path d="M16 12l-3.5-3.5L5 16"/>
       </svg>
     ),
+    growth: (
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 15l4-5 3 3 5-7"/>
+        <circle cx="15" cy="6" r="1.5"/>
+      </svg>
+    ),
+    care: (
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9 15.5s-6-4.35-6-8.15A3.5 3.5 0 019 4.85a3.5 3.5 0 016 2.5c0 3.8-6 8.15-6 8.15z"/>
+      </svg>
+    ),
+    vaccination: (
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M15 3l-2 2m0 0l-3-1-6 6 3 3 6-6-1-3 2-2zM8 10l-3 3"/>
+        <path d="M4 14l-1 1"/>
+      </svg>
+    ),
     settings: (
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="9" cy="9" r="2.5"/><path d="M9 1.5v2M9 14.5v2M3 3l1.2 1.2M13.8 13.8L15 15M1.5 9h2M14.5 9h2M3 15l1.2-1.2M13.8 4.2L15 3"/>
@@ -45,11 +75,15 @@ export default function Header({ view, onNavigate, babyName, dueDate, onOpenSett
   }
 
   const navItems = [
+    { key: 'dashboard', label: '홈' },
     { key: 'timeline', label: '일기' },
     { key: 'calendar', label: '캘린더' },
     { key: 'test', label: '임태기' },
     { key: 'events', label: '타임라인' },
     { key: 'gallery', label: '갤러리' },
+    { key: 'growth', label: '성장' },
+    { key: 'care', label: '육아 기록' },
+    { key: 'vaccination', label: '예방접종' },
   ]
 
   function handleNav(key) {
@@ -66,7 +100,7 @@ export default function Header({ view, onNavigate, babyName, dueDate, onOpenSett
     <>
       <div className="header">
         <div className="header__left">
-          <div className="header__title" onClick={() => onNavigate('timeline')}>{title}</div>
+          <div className="header__title" onClick={() => onNavigate('dashboard')}>{title}</div>
           {(dday || weekInfo) && (
             <div className="header__sub">
               {weekInfo && <span className="header__week">{weekInfo}</span>}

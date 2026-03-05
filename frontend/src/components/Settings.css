@@ -57,6 +57,20 @@
   margin-bottom: 12px;
 }
 
+.settings__pw-toggle {
+  background: none;
+  border: none;
+  color: var(--color-text-light);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.settings__pw-toggle:hover {
+  color: var(--color-primary);
+}
+
 .settings__export {
   display: flex;
   gap: 10px;

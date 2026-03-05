@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from config import UPLOAD_DIR
 from database import init_db, get_db
 from auth import hash_password, verify_password
-from routes import auth_routes, user_routes, entry_routes, test_routes, export_routes
+from routes import auth_routes, user_routes, entry_routes, test_routes, export_routes, growth_routes, care_routes, babyfood_routes, hospital_routes, vaccination_routes
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
@@ -28,6 +28,11 @@ app.include_router(user_routes.router)
 app.include_router(entry_routes.router)
 app.include_router(test_routes.router)
 app.include_router(export_routes.router)
+app.include_router(growth_routes.router)
+app.include_router(care_routes.router)
+app.include_router(babyfood_routes.router)
+app.include_router(hospital_routes.router)
+app.include_router(vaccination_routes.router)
 
 
 def create_default_admin():

@@ -61,24 +61,35 @@ export default function Gallery({ token, onNavigate }) {
       ))}
 
       {lightbox && (
-        <div className="gallery__lightbox" onClick={() => setLightbox(null)}>
-          <img
-            src={getUploadUrl(lightbox.original)}
-            alt=""
-            className="gallery__lightbox-img"
-            onClick={e => e.stopPropagation()}
-          />
-          <div className="gallery__lightbox-info" onClick={e => e.stopPropagation()}>
-            <span>{lightbox.date}</span>
-            <button
-              className="gallery__lightbox-btn"
-              onClick={() => { setLightbox(null); onNavigate('detail', lightbox.entry_id) }}
-            >
-              일기 보기
-            </button>
-          </div>
-        </div>
+        <GalleryLightbox lightbox={lightbox} onClose={() => setLightbox(null)} onNavigate={onNavigate} />
       )}
+    </div>
+  )
+}
+
+function GalleryLightbox({ lightbox, onClose, onNavigate }) {
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [])
+
+  return (
+    <div className="gallery__lightbox" onClick={onClose}>
+      <img
+        src={getUploadUrl(lightbox.original)}
+        alt=""
+        className="gallery__lightbox-img"
+        onClick={e => e.stopPropagation()}
+      />
+      <div className="gallery__lightbox-info" onClick={e => e.stopPropagation()}>
+        <span>{lightbox.date}</span>
+        <button
+          className="gallery__lightbox-btn"
+          onClick={() => { onClose(); onNavigate('detail', lightbox.entry_id) }}
+        >
+          일기 보기
+        </button>
+      </div>
     </div>
   )
 }
