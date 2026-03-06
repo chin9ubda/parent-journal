@@ -286,14 +286,15 @@ def _analyze_lines(cropped):
         kernel_size += 1
     smoothed = np.convolve(col_means, np.ones(kernel_size) / kernel_size, mode='same')
 
-    band_w = max(2, win_w // 40)
+    # C/T 선은 1~2px 폭 — 측정 밴드도 ±1px로 좁게
+    band_w = 1
 
     # Baseline: redness noise floor of white background (10th percentile)
     bg = float(np.percentile(window, 10))
 
     def measure_redness(x):
         """Redness at position x, minus background noise."""
-        band = window[:, max(0, x - band_w):min(win_w, x + band_w)]
+        band = window[:, max(0, x - band_w):min(win_w, x + band_w + 1)]
         if band.size == 0:
             return 0.0
         return max(0.0, float(np.mean(band)) - bg)
@@ -356,11 +357,11 @@ def recalculate_at_positions(cropped_img, c_x, t_x):
     window = signal[y_start:y_end, :]
     win_w = window.shape[1]
 
-    band_w = max(2, win_w // 40)
+    band_w = 1
     bg = float(np.percentile(window, 10))
 
     def measure(x):
-        band = window[:, max(0, x - band_w):min(win_w, x + band_w)]
+        band = window[:, max(0, x - band_w):min(win_w, x + band_w + 1)]
         if band.size == 0:
             return 0.0
         return max(0.0, float(np.mean(band)) - bg)
