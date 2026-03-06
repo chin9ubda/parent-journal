@@ -277,10 +277,7 @@ def _analyze_lines(cropped):
             'c_intensity': None, 't_intensity': None, 'ratio': None,
         }
 
-    # Step 2: Background = low redness signal (white areas have R≈G so signal≈0)
-    bg_level = float(np.percentile(window, 10))
-
-    # Column means within the test window
+    # Column means of redness signal
     col_means = np.mean(window, axis=0).astype(float)
 
     # Smooth (small kernel to preserve narrow line features)
@@ -289,32 +286,22 @@ def _analyze_lines(cropped):
         kernel_size += 1
     smoothed = np.convolve(col_means, np.ones(kernel_size) / kernel_size, mode='same')
 
-    # Redness strength relative to background
-    strength = smoothed - bg_level
-    strength = np.clip(strength, 0, None)
-
     band_w = max(2, win_w // 40)
 
-    # Dynamic normalization: use 95th percentile of signal as reference max
-    # This adapts to the actual redness range in each image
-    signal_max = float(np.percentile(window, 95))
-    norm_range = max(1.0, signal_max - bg_level)
-
-    def measure_strength(x):
+    def measure_redness(x):
+        """Raw mean redness at position x."""
         band = window[:, max(0, x - band_w):min(win_w, x + band_w)]
         if band.size == 0:
             return 0.0
-        mean_val = float(np.mean(band))
-        return max(0, (mean_val - bg_level) / norm_range * 100)
+        return float(np.mean(band))
 
-    # Step 3: Find C line first (strongest colored band in right half)
-    # Exclude rightmost 5% to avoid HCG pad boundary artifacts
+    # Step 2: Find C line (strongest redness in right half)
     right_half_start = win_w // 2
     right_margin = max(5, win_w // 20)
     c_search_end = win_w - right_margin
-    c_local_x = right_half_start + int(np.argmax(strength[right_half_start:c_search_end]))
+    c_local_x = right_half_start + int(np.argmax(smoothed[right_half_start:c_search_end]))
 
-    # Step 4: Find T line — search to the LEFT of C
+    # Step 3: Find T line — search to the LEFT of C
     t_search_start = max(0, c_local_x - int(win_w * 0.40))
     t_search_end = max(0, c_local_x - int(win_w * 0.08))
 
@@ -325,28 +312,30 @@ def _analyze_lines(cropped):
             'c_intensity': None, 't_intensity': None, 'ratio': None,
         }
 
-    # Find the most colored point in the T search zone
-    t_zone = strength[t_search_start:t_search_end]
-    t_local_x = t_search_start + int(np.argmax(t_zone))
+    t_local_x = t_search_start + int(np.argmax(smoothed[t_search_start:t_search_end]))
 
-    c_strength = measure_strength(c_local_x)
-    t_strength = measure_strength(t_local_x)
+    c_raw = measure_redness(c_local_x)
+    t_raw = measure_redness(t_local_x)
 
     # Convert local x back to full image x
     c_x = c_local_x + win_start
     t_x = t_local_x + win_start
 
-    # Ratio: T/C (0 = T invisible, 1.0 = T as colored as C)
-    if c_strength > 0.5:
-        ratio = round(t_strength / c_strength, 3)
+    # Normalize: C line = 100, T line relative to C
+    # No background comparison needed — both lines share the same lighting
+    if c_raw > 0.5:
+        c_intensity = 100.0
+        t_intensity = round(t_raw / c_raw * 100, 1)
+        ratio = round(t_raw / c_raw, 3)
     else:
+        c_intensity = 0.0
+        t_intensity = 0.0
         ratio = 0.0
 
     return {
         'success': True,
-        'bg_level': round(bg_level, 1),
-        'c_intensity': round(c_strength, 1),
-        't_intensity': round(t_strength, 1),
+        'c_intensity': c_intensity,
+        't_intensity': round(t_intensity, 1),
         'ratio': min(ratio, 2.0),
         'c_line_x': int(c_x),
         't_line_x': int(t_x),
@@ -365,21 +354,26 @@ def recalculate_at_positions(cropped_img, c_x, t_x):
     window = signal[y_start:y_end, :]
     win_w = window.shape[1]
 
-    bg_level = float(np.percentile(window, 10))
     band_w = max(2, win_w // 40)
-    signal_max = float(np.percentile(window, 95))
-    norm_range = max(1.0, signal_max - bg_level)
 
     def measure(x):
         band = window[:, max(0, x - band_w):min(win_w, x + band_w)]
         if band.size == 0:
             return 0.0
-        mean_val = float(np.mean(band))
-        return max(0, (mean_val - bg_level) / norm_range * 100)
+        return float(np.mean(band))
 
-    c_intensity = round(measure(c_x), 1)
-    t_intensity = round(measure(t_x), 1)
-    ratio = round(t_intensity / c_intensity, 3) if c_intensity > 0.5 else 0.0
+    c_raw = measure(c_x)
+    t_raw = measure(t_x)
+
+    # C line = 100, T line relative to C
+    if c_raw > 0.5:
+        c_intensity = 100.0
+        t_intensity = round(t_raw / c_raw * 100, 1)
+        ratio = round(t_raw / c_raw, 3)
+    else:
+        c_intensity = 0.0
+        t_intensity = 0.0
+        ratio = 0.0
     ratio = min(ratio, 2.0)
 
     return {
