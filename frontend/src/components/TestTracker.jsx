@@ -6,7 +6,7 @@ import { getUploadUrl } from '../utils/url'
 import { rotateImage, cropFromElement } from '../utils/cropImage'
 import './TestTracker.css'
 
-export default function TestTracker({ token }) {
+export default function TestTracker({ token, activeChildId }) {
   const [tests, setTests] = useState([])
   const [uploading, setUploading] = useState(false)
   const [date, setDate] = useState(() => {
@@ -33,11 +33,11 @@ export default function TestTracker({ token }) {
 
   useEffect(() => {
     if (token) loadTests()
-  }, [token])
+  }, [token, activeChildId])
 
   async function loadTests() {
     try {
-      const data = await fetchTests(token)
+      const data = await fetchTests(token, activeChildId)
       setTests(data)
     } catch (err) {
       console.error('임태기 불러오기 실패:', err)
@@ -114,7 +114,7 @@ export default function TestTracker({ token }) {
         blob = await resp.blob()
       }
       const file = new File([blob], 'cropped.jpg', { type: 'image/jpeg' })
-      await uploadTest(token, file, date, true)
+      await uploadTest(token, file, date, true, activeChildId)
       await loadTests()
       handleEditorClose()
     } catch (err) {

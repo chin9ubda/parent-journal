@@ -1,5 +1,5 @@
 .pregnancy-info {
-  padding: 16px 20px 0;
+  padding: 16px 20px;
   max-width: 960px;
   margin: 0 auto;
 }
@@ -91,4 +91,93 @@
   color: var(--color-text-muted);
   text-align: right;
   margin-top: 4px;
+}
+
+.pregnancy-info__milestones {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.pregnancy-info__milestones-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pregnancy-info__milestones-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.pregnancy-info__milestones-arrow {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  transition: transform 0.2s ease;
+}
+
+.pregnancy-info__milestones-arrow--open {
+  transform: rotate(180deg);
+}
+
+.pregnancy-info__milestones-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.pregnancy-info__milestone {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.pregnancy-info__milestone--current {
+  background: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.pregnancy-info__milestone--upcoming {
+  opacity: 0.55;
+}
+
+.pregnancy-info__milestone-icon {
+  flex-shrink: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.pregnancy-info__milestone-text {
+  flex: 1;
+}
+
+.pregnancy-info__milestone-week {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-primary-light);
+  margin-right: 6px;
+}
+
+.pregnancy-info__tip {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text);
+  background: rgba(255, 200, 50, 0.12);
+  border-left: 3px solid #f0b429;
+  padding: 8px 12px;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
 }

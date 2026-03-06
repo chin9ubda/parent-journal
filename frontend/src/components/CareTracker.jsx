@@ -14,7 +14,7 @@ const TABS = [
   { key: 'hospital', label: '병원' },
 ]
 
-export default function CareTracker({ token }) {
+export default function CareTracker({ token, activeChildId }) {
   const [tab, setTab] = useState('feeding')
 
   return (
@@ -31,11 +31,11 @@ export default function CareTracker({ token }) {
         ))}
       </div>
       <div className="care-tracker__panel">
-        {tab === 'feeding' && <FeedingPanel token={token} />}
-        {tab === 'sleep' && <SleepPanel token={token} />}
-        {tab === 'diaper' && <DiaperPanel token={token} />}
-        {tab === 'babyfood' && <BabyfoodPanel token={token} />}
-        {tab === 'hospital' && <HospitalPanel token={token} />}
+        {tab === 'feeding' && <FeedingPanel token={token} activeChildId={activeChildId} />}
+        {tab === 'sleep' && <SleepPanel token={token} activeChildId={activeChildId} />}
+        {tab === 'diaper' && <DiaperPanel token={token} activeChildId={activeChildId} />}
+        {tab === 'babyfood' && <BabyfoodPanel token={token} activeChildId={activeChildId} />}
+        {tab === 'hospital' && <HospitalPanel token={token} activeChildId={activeChildId} />}
       </div>
     </div>
   )
@@ -83,20 +83,20 @@ function formatDuration(min) {
 }
 
 // ─── Feeding Panel ──────────────────────────────────
-function FeedingPanel({ token }) {
+function FeedingPanel({ token, activeChildId }) {
   const [records, setRecords] = useState([])
   const [summary, setSummary] = useState(null)
   const [form, setForm] = useState({ datetime: nowDatetimeLocal(), feeding_type: '모유', amount_ml: '', duration_min: '' })
   const [editId, setEditId] = useState(null)
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => { load() }, [token])
+  useEffect(() => { load() }, [token, activeChildId])
 
   async function load() {
     try {
       const [recs, sum] = await Promise.all([
-        fetchCareRecords(token, 'feeding'),
-        fetchCareSummary(token, todayStr()),
+        fetchCareRecords(token, 'feeding', activeChildId),
+        fetchCareSummary(token, todayStr(), activeChildId),
       ])
       setRecords(recs)
       setSummary(sum)
@@ -118,6 +118,7 @@ function FeedingPanel({ token }) {
       feeding_type: form.feeding_type,
       amount_ml: form.amount_ml ? parseFloat(form.amount_ml) : null,
       duration_min: form.duration_min ? parseFloat(form.duration_min) : null,
+      child_id: activeChildId || undefined,
     }
     try {
       if (editId) {
@@ -195,20 +196,20 @@ function FeedingPanel({ token }) {
 }
 
 // ─── Sleep Panel ────────────────────────────────────
-function SleepPanel({ token }) {
+function SleepPanel({ token, activeChildId }) {
   const [records, setRecords] = useState([])
   const [summary, setSummary] = useState(null)
   const [form, setForm] = useState({ datetime: nowDatetimeLocal(), end_datetime: nowDatetimeLocal() })
   const [editId, setEditId] = useState(null)
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => { load() }, [token])
+  useEffect(() => { load() }, [token, activeChildId])
 
   async function load() {
     try {
       const [recs, sum] = await Promise.all([
-        fetchCareRecords(token, 'sleep'),
-        fetchCareSummary(token, todayStr()),
+        fetchCareRecords(token, 'sleep', activeChildId),
+        fetchCareSummary(token, todayStr(), activeChildId),
       ])
       setRecords(recs)
       setSummary(sum)
@@ -230,6 +231,7 @@ function SleepPanel({ token }) {
       datetime: form.datetime,
       end_datetime: form.end_datetime,
       duration_min: dur,
+      child_id: activeChildId || undefined,
     }
     try {
       if (editId) {
@@ -309,20 +311,20 @@ function SleepPanel({ token }) {
 }
 
 // ─── Diaper Panel ───────────────────────────────────
-function DiaperPanel({ token }) {
+function DiaperPanel({ token, activeChildId }) {
   const [records, setRecords] = useState([])
   const [summary, setSummary] = useState(null)
   const [form, setForm] = useState({ datetime: nowDatetimeLocal(), diaper_type: '소변' })
   const [editId, setEditId] = useState(null)
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => { load() }, [token])
+  useEffect(() => { load() }, [token, activeChildId])
 
   async function load() {
     try {
       const [recs, sum] = await Promise.all([
-        fetchCareRecords(token, 'diaper'),
-        fetchCareSummary(token, todayStr()),
+        fetchCareRecords(token, 'diaper', activeChildId),
+        fetchCareSummary(token, todayStr(), activeChildId),
       ])
       setRecords(recs)
       setSummary(sum)
@@ -342,6 +344,7 @@ function DiaperPanel({ token }) {
       category: 'diaper',
       datetime: form.datetime,
       diaper_type: form.diaper_type,
+      child_id: activeChildId || undefined,
     }
     try {
       if (editId) {
@@ -415,17 +418,17 @@ function DiaperPanel({ token }) {
 }
 
 // ─── Babyfood Panel ─────────────────────────────────
-function BabyfoodPanel({ token }) {
+function BabyfoodPanel({ token, activeChildId }) {
   const [records, setRecords] = useState([])
   const [form, setForm] = useState({ date: todayStr(), ingredient: '', reaction: 'normal', memo: '' })
   const [editId, setEditId] = useState(null)
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => { load() }, [token])
+  useEffect(() => { load() }, [token, activeChildId])
 
   async function load() {
     try {
-      setRecords(await fetchBabyfoodRecords(token))
+      setRecords(await fetchBabyfoodRecords(token, activeChildId))
     } catch (e) { console.error(e) }
   }
 
@@ -438,7 +441,7 @@ function BabyfoodPanel({ token }) {
     e.preventDefault()
     if (saving || !form.ingredient.trim()) return
     setSaving(true)
-    const data = { date: form.date, ingredient: form.ingredient.trim(), reaction: form.reaction, memo: form.memo.trim() || null }
+    const data = { date: form.date, ingredient: form.ingredient.trim(), reaction: form.reaction, memo: form.memo.trim() || null, child_id: activeChildId || undefined }
     try {
       if (editId) {
         await updateBabyfoodRecord(token, editId, data)
@@ -510,17 +513,17 @@ function BabyfoodPanel({ token }) {
 }
 
 // ─── Hospital Panel ─────────────────────────────────
-function HospitalPanel({ token }) {
+function HospitalPanel({ token, activeChildId }) {
   const [records, setRecords] = useState([])
   const [form, setForm] = useState({ date: todayStr(), hospital_name: '', department: '', memo: '' })
   const [editId, setEditId] = useState(null)
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => { load() }, [token])
+  useEffect(() => { load() }, [token, activeChildId])
 
   async function load() {
     try {
-      setRecords(await fetchHospitalRecords(token))
+      setRecords(await fetchHospitalRecords(token, activeChildId))
     } catch (e) { console.error(e) }
   }
 
@@ -538,6 +541,7 @@ function HospitalPanel({ token }) {
       hospital_name: form.hospital_name.trim(),
       department: form.department.trim() || null,
       memo: form.memo.trim() || null,
+      child_id: activeChildId || undefined,
     }
     try {
       if (editId) {

@@ -3,7 +3,7 @@ from datetime import datetime
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends
 from typing import List
 from auth import get_current_user, get_current_user_form
-from database import get_db
+from database import get_db, verify_child_owner
 from file_handler import save_upload_files, delete_entry_files, get_entry_images, remove_images
 
 router = APIRouter(prefix="/api")
@@ -26,18 +26,21 @@ async def create_entry(
     date: str = Form(None),
     tags: str = Form('[]'),
     timeline_label: str = Form(None),
+    child_id: int = Form(None),
     files: List[UploadFile] = File([]),
     user: dict = Depends(get_current_user_form)
 ):
     uid = user['uid']
+    if child_id:
+        verify_child_owner(child_id, uid)
     dt = date or datetime.utcnow().isoformat()
     tags_json = _parse_tags(tags)
     tl = timeline_label.strip() if timeline_label and timeline_label.strip() else None
     with get_db() as conn:
         c = conn.cursor()
         c.execute(
-            'INSERT INTO entries(user_id, title, body, date, tags, timeline_label) VALUES(?,?,?,?,?,?)',
-            (uid, title or '', body or '', dt, tags_json, tl)
+            'INSERT INTO entries(user_id, title, body, date, tags, timeline_label, child_id) VALUES(?,?,?,?,?,?,?)',
+            (uid, title or '', body or '', dt, tags_json, tl, child_id)
         )
         eid = c.lastrowid
         save_upload_files(eid, files, conn)
@@ -51,6 +54,7 @@ def list_entries(
     offset: int = 0,
     q: str = None,
     tag: str = None,
+    child_id: int = None,
     user: dict = Depends(get_current_user)
 ):
     uid = user['uid']
@@ -58,6 +62,9 @@ def list_entries(
         c = conn.cursor()
         sql = 'SELECT id, title, body, date, tags, timeline_label FROM entries WHERE user_id=?'
         params = [uid]
+        if child_id:
+            sql += ' AND child_id=?'
+            params.append(child_id)
         if q:
             sql += ' AND (title LIKE ? OR body LIKE ?)'
             like_q = f'%{q}%'
@@ -86,14 +93,16 @@ def list_entries(
 
 
 @router.get('/tags')
-def list_tags(user: dict = Depends(get_current_user)):
+def list_tags(child_id: int = None, user: dict = Depends(get_current_user)):
     uid = user['uid']
     with get_db() as conn:
         c = conn.cursor()
-        c.execute(
-            "SELECT tags FROM entries WHERE user_id=? AND tags IS NOT NULL AND tags != '[]'",
-            (uid,)
-        )
+        sql = "SELECT tags FROM entries WHERE user_id=? AND tags IS NOT NULL AND tags != '[]'"
+        params = [uid]
+        if child_id:
+            sql += ' AND child_id=?'
+            params.append(child_id)
+        c.execute(sql, params)
         rows = c.fetchall()
     tag_set = set()
     for row in rows:
@@ -107,16 +116,19 @@ def list_tags(user: dict = Depends(get_current_user)):
 
 
 @router.get('/gallery')
-def list_gallery(user: dict = Depends(get_current_user)):
+def list_gallery(child_id: int = None, user: dict = Depends(get_current_user)):
     uid = user['uid']
     with get_db() as conn:
         c = conn.cursor()
-        c.execute(
-            'SELECT e.id, e.date, i.filename, i.thumb '
-            'FROM images i JOIN entries e ON i.entry_id = e.id '
-            'WHERE e.user_id=? ORDER BY e.date DESC, e.id DESC',
-            (uid,)
-        )
+        sql = ('SELECT e.id, e.date, i.filename, i.thumb '
+               'FROM images i JOIN entries e ON i.entry_id = e.id '
+               'WHERE e.user_id=?')
+        params = [uid]
+        if child_id:
+            sql += ' AND e.child_id=?'
+            params.append(child_id)
+        sql += ' ORDER BY e.date DESC, e.id DESC'
+        c.execute(sql, params)
         rows = c.fetchall()
     return [
         {'entry_id': r[0], 'date': r[1], 'filename': r[2],
@@ -127,16 +139,18 @@ def list_gallery(user: dict = Depends(get_current_user)):
 
 
 @router.get('/timeline')
-def list_timeline(user: dict = Depends(get_current_user)):
+def list_timeline(child_id: int = None, user: dict = Depends(get_current_user)):
     uid = user['uid']
     with get_db() as conn:
         c = conn.cursor()
-        c.execute(
-            'SELECT id, date, timeline_label, body, tags FROM entries '
-            'WHERE user_id=? AND timeline_label IS NOT NULL '
-            'ORDER BY date ASC, id ASC',
-            (uid,)
-        )
+        sql = ('SELECT id, date, timeline_label, body, tags FROM entries '
+               'WHERE user_id=? AND timeline_label IS NOT NULL')
+        params = [uid]
+        if child_id:
+            sql += ' AND child_id=?'
+            params.append(child_id)
+        sql += ' ORDER BY date ASC, id ASC'
+        c.execute(sql, params)
         rows = c.fetchall()
     return [
         {'id': r[0], 'date': r[1], 'timeline_label': r[2],

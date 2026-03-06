@@ -15,7 +15,7 @@ function formatDateHeader(dateStr) {
   return `${y}년 ${m}월 ${d}일 (${day})`
 }
 
-export default function Timeline({ token, onViewEntry, onNewEntry }) {
+export default function Timeline({ token, onViewEntry, onNewEntry, activeChildId }) {
   const [entries, setEntries] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTag, setActiveTag] = useState(null)
@@ -28,8 +28,8 @@ export default function Timeline({ token, onViewEntry, onNewEntry }) {
   const observerRef = useRef(null)
 
   useEffect(() => {
-    if (token) fetchTags(token).then(setAllTags).catch(() => {})
-  }, [token])
+    if (token) fetchTags(token, activeChildId).then(setAllTags).catch(() => {})
+  }, [token, activeChildId])
 
   const loadPage = useCallback(async (offset, opts = {}) => {
     if (loading) return
@@ -39,7 +39,7 @@ export default function Timeline({ token, onViewEntry, onNewEntry }) {
         q: opts.q || undefined,
         tag: opts.tag || undefined,
         offset,
-      })
+      }, activeChildId)
       if (offset === 0) {
         setEntries(data)
       } else {
@@ -52,7 +52,7 @@ export default function Timeline({ token, onViewEntry, onNewEntry }) {
     } finally {
       setLoading(false)
     }
-  }, [token, loading])
+  }, [token, loading, activeChildId])
 
   // Reset and load when search/tag changes
   useEffect(() => {
@@ -65,7 +65,7 @@ export default function Timeline({ token, onViewEntry, onNewEntry }) {
       loadPage(0, { q: searchQuery, tag: activeTag })
     }, delay)
     return () => clearTimeout(debounceRef.current)
-  }, [token, searchQuery, activeTag])
+  }, [token, searchQuery, activeTag, activeChildId])
 
   // IntersectionObserver for infinite scroll
   useEffect(() => {

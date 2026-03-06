@@ -8,17 +8,20 @@ export async function login(username, password) {
   return r.data
 }
 
-export async function fetchEntries(token, limit = 1000, { q, tag, offset } = {}) {
+export async function fetchEntries(token, limit = 1000, { q, tag, offset } = {}, childId) {
   const params = { token, limit }
   if (q) params.q = q
   if (tag) params.tag = tag
   if (offset) params.offset = offset
+  if (childId) params.child_id = childId
   const r = await api.get('/api/entries', { params })
   return r.data
 }
 
-export async function fetchTags(token) {
-  const r = await api.get('/api/tags', { params: { token } })
+export async function fetchTags(token, childId) {
+  const params = { token }
+  if (childId) params.child_id = childId
+  const r = await api.get('/api/tags', { params })
   return r.data
 }
 
@@ -37,26 +40,36 @@ export async function updateEntry(id, formData) {
   return r.data
 }
 
-export async function fetchTimeline(token) {
-  const r = await api.get('/api/timeline', { params: { token } })
+export async function fetchTimeline(token, childId) {
+  const params = { token }
+  if (childId) params.child_id = childId
+  const r = await api.get('/api/timeline', { params })
   return r.data
 }
 
-export async function fetchGallery(token) {
-  const r = await api.get('/api/gallery', { params: { token } })
+export async function fetchGallery(token, childId) {
+  const params = { token }
+  if (childId) params.child_id = childId
+  const r = await api.get('/api/gallery', { params })
   return r.data
 }
 
-export function getExportJsonUrl(token) {
-  return `${api.defaults.baseURL}/api/export/json?token=${token}`
+export function getExportJsonUrl(token, childId) {
+  let url = `${api.defaults.baseURL}/api/export/json?token=${token}`
+  if (childId) url += `&child_id=${childId}`
+  return url
 }
 
-export function getExportZipUrl(token) {
-  return `${api.defaults.baseURL}/api/export/zip?token=${token}`
+export function getExportZipUrl(token, childId) {
+  let url = `${api.defaults.baseURL}/api/export/zip?token=${token}`
+  if (childId) url += `&child_id=${childId}`
+  return url
 }
 
-export function getExportPdfUrl(token) {
-  return `${api.defaults.baseURL}/api/export/pdf?token=${token}`
+export function getExportPdfUrl(token, childId) {
+  let url = `${api.defaults.baseURL}/api/export/pdf?token=${token}`
+  if (childId) url += `&child_id=${childId}`
+  return url
 }
 
 export async function changePassword(token, current, newPw) {
@@ -83,18 +96,21 @@ export async function updateSettings(token, data) {
   return r.data
 }
 
-export async function uploadTest(token, file, date, preCropped = false) {
+export async function uploadTest(token, file, date, preCropped = false, childId) {
   const form = new FormData()
   form.append('file', file)
   form.append('token', token)
   if (date) form.append('date', date)
   if (preCropped) form.append('pre_cropped', 'true')
+  if (childId) form.append('child_id', childId)
   const r = await api.post('/api/tests', form)
   return r.data
 }
 
-export async function fetchTests(token) {
-  const r = await api.get('/api/tests', { params: { token } })
+export async function fetchTests(token, childId) {
+  const params = { token }
+  if (childId) params.child_id = childId
+  const r = await api.get('/api/tests', { params })
   return r.data
 }
 
@@ -113,8 +129,10 @@ export async function deleteTest(id, token) {
   return r.data
 }
 
-export async function fetchGrowthRecords(token) {
-  const r = await api.get('/api/growth', { params: { token } })
+export async function fetchGrowthRecords(token, childId) {
+  const params = { token }
+  if (childId) params.child_id = childId
+  const r = await api.get('/api/growth', { params })
   return r.data
 }
 
@@ -134,15 +152,18 @@ export async function deleteGrowthRecord(id, token) {
 }
 
 // Care records (feeding / sleep / diaper)
-export async function fetchCareRecords(token, category) {
+export async function fetchCareRecords(token, category, childId) {
   const params = { token }
   if (category) params.category = category
+  if (childId) params.child_id = childId
   const r = await api.get('/api/care', { params })
   return r.data
 }
 
-export async function fetchCareSummary(token, date) {
-  const r = await api.get('/api/care/summary', { params: { token, date } })
+export async function fetchCareSummary(token, date, childId) {
+  const params = { token, date }
+  if (childId) params.child_id = childId
+  const r = await api.get('/api/care/summary', { params })
   return r.data
 }
 
@@ -162,8 +183,10 @@ export async function deleteCareRecord(id, token) {
 }
 
 // Baby food records
-export async function fetchBabyfoodRecords(token) {
-  const r = await api.get('/api/babyfood', { params: { token } })
+export async function fetchBabyfoodRecords(token, childId) {
+  const params = { token }
+  if (childId) params.child_id = childId
+  const r = await api.get('/api/babyfood', { params })
   return r.data
 }
 
@@ -183,8 +206,10 @@ export async function deleteBabyfoodRecord(id, token) {
 }
 
 // Hospital records
-export async function fetchHospitalRecords(token) {
-  const r = await api.get('/api/hospital', { params: { token } })
+export async function fetchHospitalRecords(token, childId) {
+  const params = { token }
+  if (childId) params.child_id = childId
+  const r = await api.get('/api/hospital', { params })
   return r.data
 }
 
@@ -204,8 +229,10 @@ export async function deleteHospitalRecord(id, token) {
 }
 
 // Vaccination records
-export async function fetchVaccinations(token) {
-  const r = await api.get('/api/vaccinations', { params: { token } })
+export async function fetchVaccinations(token, childId) {
+  const params = { token }
+  if (childId) params.child_id = childId
+  const r = await api.get('/api/vaccinations', { params })
   return r.data
 }
 
@@ -216,6 +243,27 @@ export async function createVaccination(token, data) {
 
 export async function deleteVaccination(id, token) {
   const r = await api.delete(`/api/vaccinations/${id}`, { params: { token } })
+  return r.data
+}
+
+// Children CRUD
+export async function fetchChildren(token) {
+  const r = await api.get('/api/children', { params: { token } })
+  return r.data
+}
+
+export async function createChild(token, data) {
+  const r = await api.post('/api/children', data, { params: { token } })
+  return r.data
+}
+
+export async function updateChild(token, id, data) {
+  const r = await api.put(`/api/children/${id}`, data, { params: { token } })
+  return r.data
+}
+
+export async function deleteChild(id, token) {
+  const r = await api.delete(`/api/children/${id}`, { params: { token } })
   return r.data
 }
 

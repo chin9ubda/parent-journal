@@ -21,17 +21,21 @@ import Modal from './components/Modal'
 import './App.css'
 
 export default function App() {
-  const { token, role, babyName, dueDate, login, setSettings } = useAuth()
+  const {
+    token, role, babyName, dueDate,
+    children, activeChildId, activeChild,
+    login: authLogin, logout, setSettings, switchChild, updateChildren,
+  } = useAuth()
   const { view, viewId, modal, navigate, openModal, closeModal, closeModalAndNavigate } = useNavigation()
-  const { entriesByDate, loadEntries } = useEntries(token)
+  const { entriesByDate, loadEntries } = useEntries(token, activeChildId)
   const [detailKey, setDetailKey] = useState(0)
   const [settingsOpen, setSettingsOpen] = useState(false)
 
   useEffect(() => {
     if (token) loadEntries()
-  }, [token, loadEntries])
+  }, [token, loadEntries, activeChildId])
 
-  if (!token) return <Login onLogin={login} />
+  if (!token) return <Login onLogin={authLogin} />
 
   const showHeader = view !== 'detail'
 
@@ -70,6 +74,9 @@ export default function App() {
           onNavigate={navigate}
           babyName={babyName}
           dueDate={dueDate}
+          children={children}
+          activeChildId={activeChildId}
+          onSwitchChild={switchChild}
           onOpenSettings={() => setSettingsOpen(true)}
         />
       )}
@@ -80,11 +87,12 @@ export default function App() {
           dueDate={dueDate}
           onNavigate={navigate}
           onNewEntry={() => openModal()}
+          activeChildId={activeChildId}
         />
       )}
 
       {view === 'timeline' && (
-        <Timeline token={token} onViewEntry={id => navigate('detail', id)} onNewEntry={() => openModal()} />
+        <Timeline token={token} onViewEntry={id => navigate('detail', id)} onNewEntry={() => openModal()} activeChildId={activeChildId} />
       )}
 
       {view === 'detail' && (
@@ -107,27 +115,27 @@ export default function App() {
       )}
 
       {view === 'test' && (
-        <TestTracker token={token} />
+        <TestTracker token={token} activeChildId={activeChildId} />
       )}
 
       {view === 'events' && (
-        <EventTimeline token={token} onNavigate={navigate} />
+        <EventTimeline token={token} onNavigate={navigate} activeChildId={activeChildId} />
       )}
 
       {view === 'gallery' && (
-        <Gallery token={token} onNavigate={navigate} />
+        <Gallery token={token} onNavigate={navigate} activeChildId={activeChildId} />
       )}
 
       {view === 'growth' && (
-        <GrowthTracker token={token} />
+        <GrowthTracker token={token} activeChildId={activeChildId} />
       )}
 
       {view === 'care' && (
-        <CareTracker token={token} />
+        <CareTracker token={token} activeChildId={activeChildId} />
       )}
 
       {view === 'vaccination' && (
-        <VaccinationTracker token={token} />
+        <VaccinationTracker token={token} activeChildId={activeChildId} />
       )}
 
       {modal.open && (
@@ -146,6 +154,7 @@ export default function App() {
               editId={modal.editId}
               initialDate={modal.date}
               onDone={handleModalDone}
+              activeChildId={activeChildId}
             />
           )}
         </Modal>
@@ -155,10 +164,12 @@ export default function App() {
         <Modal onClose={() => setSettingsOpen(false)}>
           <Settings
             token={token}
-            babyName={babyName}
-            dueDate={dueDate}
+            children={children}
+            activeChildId={activeChildId}
+            onChildrenUpdated={updateChildren}
             onSaved={handleSettingsSaved}
             onClose={() => setSettingsOpen(false)}
+            onLogout={logout}
           />
         </Modal>
       )}

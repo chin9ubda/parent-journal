@@ -4,7 +4,7 @@ import { VACCINATION_SCHEDULE, TOTAL_VACCINATIONS } from './VaccinationTracker'
 import PregnancyInfo from './PregnancyInfo'
 import './Dashboard.css'
 
-export default function Dashboard({ token, dueDate, onNavigate, onNewEntry }) {
+export default function Dashboard({ token, dueDate, onNavigate, onNewEntry, activeChildId }) {
   const [care, setCare] = useState(null)
   const [growth, setGrowth] = useState(null)
   const [entries, setEntries] = useState(null)
@@ -12,12 +12,13 @@ export default function Dashboard({ token, dueDate, onNavigate, onNewEntry }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    setLoading(true)
     const today = new Date().toISOString().slice(0, 10)
     Promise.allSettled([
-      fetchCareSummary(token, today),
-      fetchGrowthRecords(token),
-      fetchEntries(token, 3),
-      fetchVaccinations(token),
+      fetchCareSummary(token, today, activeChildId),
+      fetchGrowthRecords(token, activeChildId),
+      fetchEntries(token, 3, {}, activeChildId),
+      fetchVaccinations(token, activeChildId),
     ]).then(([careRes, growthRes, entriesRes, vaccRes]) => {
       if (careRes.status === 'fulfilled') setCare(careRes.value)
       if (growthRes.status === 'fulfilled') setGrowth(growthRes.value)
@@ -25,7 +26,7 @@ export default function Dashboard({ token, dueDate, onNavigate, onNewEntry }) {
       if (vaccRes.status === 'fulfilled') setVaccinations(vaccRes.value)
       setLoading(false)
     })
-  }, [token])
+  }, [token, activeChildId])
 
   // Find next upcoming vaccination
   function getNextVaccination() {

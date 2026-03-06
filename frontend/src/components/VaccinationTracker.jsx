@@ -76,17 +76,17 @@ export const TOTAL_VACCINATIONS = VACCINATION_SCHEDULE.reduce(
   (sum, g) => sum + g.vaccines.length, 0
 )
 
-export default function VaccinationTracker({ token }) {
+export default function VaccinationTracker({ token, activeChildId }) {
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     load()
-  }, [token])
+  }, [token, activeChildId])
 
   async function load() {
     try {
-      const data = await fetchVaccinations(token)
+      const data = await fetchVaccinations(token, activeChildId)
       setRecords(data)
     } catch { /* ignore */ }
     setLoading(false)
@@ -125,6 +125,7 @@ export default function VaccinationTracker({ token }) {
         scheduled_age_months: group.ageMonths,
         date_completed: today,
         memo: group.group,
+        child_id: activeChildId || undefined,
       })
     } else if (!checked && existing) {
       await deleteVaccination(existing.id, token)
@@ -144,6 +145,7 @@ export default function VaccinationTracker({ token }) {
       scheduled_age_months: group.ageMonths,
       date_completed: date,
       memo: group.group,
+      child_id: activeChildId || undefined,
     })
     load()
   }

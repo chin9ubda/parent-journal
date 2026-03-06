@@ -15,14 +15,17 @@ router = APIRouter(prefix="/api")
 
 
 @router.get('/export/json')
-def export_json(user: dict = Depends(get_current_user)):
+def export_json(child_id: int = None, user: dict = Depends(get_current_user)):
     uid = user['uid']
     with get_db() as conn:
         c = conn.cursor()
-        c.execute(
-            'SELECT id, title, body, date, tags, timeline_label FROM entries WHERE user_id=? ORDER BY date ASC',
-            (uid,)
-        )
+        sql = 'SELECT id, title, body, date, tags, timeline_label FROM entries WHERE user_id=?'
+        params = [uid]
+        if child_id:
+            sql += ' AND child_id=?'
+            params.append(child_id)
+        sql += ' ORDER BY date ASC'
+        c.execute(sql, params)
         entries = []
         for r in c.fetchall():
             eid = r[0]
@@ -52,15 +55,18 @@ def export_json(user: dict = Depends(get_current_user)):
 
 
 @router.get('/export/zip')
-def export_zip(user: dict = Depends(get_current_user)):
+def export_zip(child_id: int = None, user: dict = Depends(get_current_user)):
     """Export all entries + images as a ZIP file."""
     uid = user['uid']
     with get_db() as conn:
         c = conn.cursor()
-        c.execute(
-            'SELECT id, title, body, date, tags, timeline_label FROM entries WHERE user_id=? ORDER BY date ASC',
-            (uid,)
-        )
+        sql = 'SELECT id, title, body, date, tags, timeline_label FROM entries WHERE user_id=?'
+        params = [uid]
+        if child_id:
+            sql += ' AND child_id=?'
+            params.append(child_id)
+        sql += ' ORDER BY date ASC'
+        c.execute(sql, params)
         entries = []
         for r in c.fetchall():
             eid = r[0]
@@ -104,15 +110,18 @@ def _find_korean_font(bold=False):
 
 
 @router.get('/export/pdf')
-def export_pdf(user: dict = Depends(get_current_user)):
+def export_pdf(child_id: int = None, user: dict = Depends(get_current_user)):
     """Export all entries as a PDF file with images."""
     uid = user['uid']
     with get_db() as conn:
         c = conn.cursor()
-        c.execute(
-            'SELECT id, title, body, date, tags, timeline_label FROM entries WHERE user_id=? ORDER BY date ASC',
-            (uid,)
-        )
+        sql = 'SELECT id, title, body, date, tags, timeline_label FROM entries WHERE user_id=?'
+        params = [uid]
+        if child_id:
+            sql += ' AND child_id=?'
+            params.append(child_id)
+        sql += ' ORDER BY date ASC'
+        c.execute(sql, params)
         entries = []
         for r in c.fetchall():
             eid = r[0]

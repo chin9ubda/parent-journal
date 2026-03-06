@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional
 from auth import get_current_user
-from database import get_db
+from database import get_db, verify_child_owner
 
 router = APIRouter(prefix="/api")
 
@@ -12,16 +12,19 @@ class GrowthBody(BaseModel):
     date: str
     height: Optional[float] = None
     weight: Optional[float] = None
+    child_id: Optional[int] = None
 
 
 @router.post('/growth')
 def create_growth(body: GrowthBody, user: dict = Depends(get_current_user)):
     uid = user['uid']
+    if body.child_id:
+        verify_child_owner(body.child_id, uid)
     with get_db() as conn:
         c = conn.cursor()
         c.execute(
-            'INSERT INTO growth_records(user_id, date, height, weight, created_at) VALUES(?,?,?,?,?)',
-            (uid, body.date, body.height, body.weight, datetime.utcnow().isoformat())
+            'INSERT INTO growth_records(user_id, date, height, weight, created_at, child_id) VALUES(?,?,?,?,?,?)',
+            (uid, body.date, body.height, body.weight, datetime.utcnow().isoformat(), body.child_id)
         )
         gid = c.lastrowid
         conn.commit()
@@ -29,14 +32,17 @@ def create_growth(body: GrowthBody, user: dict = Depends(get_current_user)):
 
 
 @router.get('/growth')
-def list_growth(user: dict = Depends(get_current_user)):
+def list_growth(child_id: int = None, user: dict = Depends(get_current_user)):
     uid = user['uid']
     with get_db() as conn:
         c = conn.cursor()
-        c.execute(
-            'SELECT id, date, height, weight FROM growth_records WHERE user_id=? ORDER BY date ASC',
-            (uid,)
-        )
+        sql = 'SELECT id, date, height, weight FROM growth_records WHERE user_id=?'
+        params = [uid]
+        if child_id:
+            sql += ' AND child_id=?'
+            params.append(child_id)
+        sql += ' ORDER BY date ASC'
+        c.execute(sql, params)
         rows = c.fetchall()
     return [
         {'id': r[0], 'date': r[1], 'height': r[2], 'weight': r[3]}

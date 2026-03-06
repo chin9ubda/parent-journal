@@ -7,7 +7,7 @@ const TABS = [
   { key: 'weight', label: '몸무게', unit: 'kg', color: '#f59e0b' },
 ]
 
-export default function GrowthTracker({ token }) {
+export default function GrowthTracker({ token, activeChildId }) {
   const [records, setRecords] = useState([])
   const [tab, setTab] = useState('height')
   const [selectedId, setSelectedId] = useState(null)
@@ -18,7 +18,7 @@ export default function GrowthTracker({ token }) {
 
   useEffect(() => {
     if (token) loadRecords()
-  }, [token])
+  }, [token, activeChildId])
 
   useEffect(() => {
     const el = chartScrollRef.current
@@ -27,7 +27,7 @@ export default function GrowthTracker({ token }) {
 
   async function loadRecords() {
     try {
-      const data = await fetchGrowthRecords(token)
+      const data = await fetchGrowthRecords(token, activeChildId)
       setRecords(data)
     } catch (err) {
       console.error('성장 기록 불러오기 실패:', err)
@@ -47,6 +47,7 @@ export default function GrowthTracker({ token }) {
       date: form.date,
       height: form.height !== '' ? parseFloat(form.height) : null,
       weight: form.weight !== '' ? parseFloat(form.weight) : null,
+      child_id: activeChildId || undefined,
     }
     if (data.height == null && data.weight == null) return
     setSaving(true)

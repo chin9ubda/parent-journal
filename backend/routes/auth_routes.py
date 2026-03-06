@@ -12,6 +12,18 @@ class AuthIn(BaseModel):
     password: str
 
 
+def _get_children(conn, uid):
+    c = conn.cursor()
+    c.execute(
+        'SELECT id, name, due_date, birth_date FROM children WHERE user_id=? ORDER BY created_at ASC',
+        (uid,)
+    )
+    return [
+        {'id': r[0], 'name': r[1], 'due_date': r[2] or '', 'birth_date': r[3] or ''}
+        for r in c.fetchall()
+    ]
+
+
 @router.post('/login')
 def login(data: AuthIn):
     with get_db() as conn:
@@ -24,11 +36,16 @@ def login(data: AuthIn):
             row = c.fetchone()
             if row:
                 row = (row[0], row[1], row[2], None, None)
-    if not row or not verify_password(data.password, row[1]):
-        raise HTTPException(status_code=401, detail='Invalid credentials')
-    uid, _, role, baby_name, due_date = row
-    token = create_token(uid, role)
-    return {'token': token, 'role': role, 'baby_name': baby_name or '', 'due_date': due_date or ''}
+        if not row or not verify_password(data.password, row[1]):
+            raise HTTPException(status_code=401, detail='Invalid credentials')
+        uid, _, role, baby_name, due_date = row
+        token = create_token(uid, role)
+        children = _get_children(conn, uid)
+    return {
+        'token': token, 'role': role,
+        'baby_name': baby_name or '', 'due_date': due_date or '',
+        'children': children,
+    }
 
 
 class SettingsIn(BaseModel):
@@ -43,9 +60,10 @@ def get_settings(user: dict = Depends(get_current_user)):
         c = conn.cursor()
         c.execute('SELECT baby_name, due_date FROM users WHERE id=?', (uid,))
         row = c.fetchone()
-    if not row:
-        raise HTTPException(status_code=404)
-    return {'baby_name': row[0] or '', 'due_date': row[1] or ''}
+        if not row:
+            raise HTTPException(status_code=404)
+        children = _get_children(conn, uid)
+    return {'baby_name': row[0] or '', 'due_date': row[1] or '', 'children': children}
 
 
 @router.put('/settings')

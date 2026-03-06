@@ -1,4 +1,35 @@
+import { useState } from 'react'
 import './PregnancyInfo.css'
+
+const MILESTONES = [
+  { weekStart: 4, weekEnd: 5, icon: '🔍', text: '아기집(임신낭) 초음파 확인 가능' },
+  { weekStart: 5, weekEnd: 6, icon: '🟡', text: '난황낭 확인' },
+  { weekStart: 6, weekEnd: 8, icon: '💓', text: '심박동 확인 (분당 110~160회)' },
+  { weekStart: 8, weekEnd: 10, icon: '📋', text: '산모 수첩 발급, 기본 혈액검사' },
+  { weekStart: 11, weekEnd: 13, icon: '🧬', text: '1차 기형아 검사 (NT 스캔)' },
+  { weekStart: 15, weekEnd: 20, icon: '🧬', text: '2차 기형아 검사 (쿼드 검사)' },
+  { weekStart: 16, weekEnd: 18, icon: '🤰', text: '태동 첫 감지 시기' },
+  { weekStart: 20, weekEnd: 24, icon: '📸', text: '정밀 초음파 (태아 구조 전체)' },
+  { weekStart: 24, weekEnd: 28, icon: '🩸', text: '임신성 당뇨 검사' },
+  { weekStart: 28, weekEnd: 28, icon: '🩸', text: 'Rh 항체/빈혈 재검' },
+  { weekStart: 30, weekEnd: 32, icon: '📸', text: '후기 정밀 초음파' },
+  { weekStart: 32, weekEnd: 36, icon: '📊', text: 'NST (비수축 검사) 시작' },
+  { weekStart: 35, weekEnd: 37, icon: '🧪', text: 'GBS 검사' },
+  { weekStart: 37, weekEnd: 40, icon: '🏥', text: '매주 검진' },
+]
+
+const WEEKLY_TIPS = {
+  5: '입덧이 시작될 수 있어요. 소량씩 자주 드세요.',
+  8: '입덧이 절정이에요. 수분 섭취에 신경 쓰세요.',
+  12: '안정기에 진입합니다. 입덧이 줄어들 거예요.',
+  16: '배가 나오기 시작해요. 편한 옷을 준비하세요.',
+  20: '허리 통증에 주의하세요. 바른 자세가 중요해요.',
+  24: '부종과 경련이 생길 수 있어요. 다리를 올려 쉬세요.',
+  28: '숨참과 속쓰림이 올 수 있어요. 식사를 나눠서 하세요.',
+  32: '가진통이 올 수 있어요. 진진통과 구분하세요.',
+  36: '이슬이나 양수 파수 징후를 알아두세요.',
+  37: '출산 가방을 준비하세요. 언제든 갈 수 있도록!',
+}
 
 const WEEKLY_INFO = {
   4: { size: '양귀비 씨앗', length: '1mm', desc: '착상이 완료되고 세포 분열이 시작됩니다.' },
@@ -54,8 +85,17 @@ export default function PregnancyInfo({ dueDate }) {
 
   if (currentWeek < 4 || currentWeek > 42) return null
 
+  const [open, setOpen] = useState(false)
+
   const info = WEEKLY_INFO[currentWeek] || WEEKLY_INFO[Math.min(currentWeek, 40)]
   if (!info) return null
+
+  const relevant = MILESTONES.filter(
+    m => (currentWeek >= m.weekStart && currentWeek <= m.weekEnd)
+      || (m.weekStart > currentWeek && m.weekStart <= currentWeek + 2)
+  )
+
+  const tip = WEEKLY_TIPS[currentWeek]
 
   return (
     <div className="pregnancy-info">
@@ -85,6 +125,34 @@ export default function PregnancyInfo({ dueDate }) {
             {Math.round((elapsed / 280) * 100)}% 완료
           </div>
         </div>
+        {(relevant.length > 0 || tip) && (
+          <div className="pregnancy-info__milestones">
+            <button className="pregnancy-info__milestones-toggle" onClick={() => setOpen(o => !o)}>
+              <span className="pregnancy-info__milestones-title">이번 시기 체크</span>
+              <span className={`pregnancy-info__milestones-arrow ${open ? 'pregnancy-info__milestones-arrow--open' : ''}`}>&#9662;</span>
+            </button>
+            {open && (
+              <div className="pregnancy-info__milestones-body">
+                {relevant.map((m, i) => {
+                  const isCurrent = currentWeek >= m.weekStart && currentWeek <= m.weekEnd
+                  return (
+                    <div
+                      key={i}
+                      className={`pregnancy-info__milestone ${isCurrent ? 'pregnancy-info__milestone--current' : 'pregnancy-info__milestone--upcoming'}`}
+                    >
+                      <span className="pregnancy-info__milestone-icon">{m.icon}</span>
+                      <span className="pregnancy-info__milestone-text">
+                        <span className="pregnancy-info__milestone-week">{m.weekStart === m.weekEnd ? `${m.weekStart}주` : `${m.weekStart}~${m.weekEnd}주`}</span>
+                        {m.text}
+                      </span>
+                    </div>
+                  )
+                })}
+                {tip && <div className="pregnancy-info__tip">{tip}</div>}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

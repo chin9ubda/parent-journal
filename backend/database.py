@@ -1,5 +1,6 @@
 import sqlite3
 from contextlib import contextmanager
+from fastapi import HTTPException
 from config import DB_PATH
 
 @contextmanager
@@ -10,6 +11,19 @@ def get_db():
         yield conn
     finally:
         conn.close()
+
+
+def verify_child_owner(child_id, uid):
+    """Verify that child_id belongs to the given user. Returns child_id or raises 403."""
+    if not child_id:
+        return None
+    with get_db() as conn:
+        c = conn.cursor()
+        c.execute('SELECT id FROM children WHERE id=? AND user_id=?', (child_id, uid))
+        if not c.fetchone():
+            raise HTTPException(status_code=403, detail='Not your child')
+    return child_id
+
 
 def init_db():
     with get_db() as conn:
@@ -77,4 +91,38 @@ def init_db():
              vaccine_name TEXT, dose_number INTEGER,
              scheduled_age_months INTEGER, date_completed TEXT, memo TEXT,
              created_at TEXT DEFAULT CURRENT_TIMESTAMP)''')
+
+        # ── Children table ──
+        c.execute('''CREATE TABLE IF NOT EXISTS children
+            (id INTEGER PRIMARY KEY, user_id INTEGER REFERENCES users(id),
+             name TEXT, due_date TEXT, birth_date TEXT,
+             created_at TEXT DEFAULT CURRENT_TIMESTAMP)''')
+
+        # Migrate: add child_id column to 7 record tables
+        _tables_needing_child_id = [
+            'entries', 'test_analyses', 'growth_records',
+            'care_records', 'babyfood_records', 'hospital_records',
+            'vaccination_records',
+        ]
+        for tbl in _tables_needing_child_id:
+            tbl_cols = {row[1] for row in c.execute(f"PRAGMA table_info({tbl})").fetchall()}
+            if 'child_id' not in tbl_cols:
+                c.execute(f"ALTER TABLE {tbl} ADD COLUMN child_id INTEGER REFERENCES children(id)")
+
+        # Auto-migrate: if users have baby_name but children is empty, create child records
+        c.execute('SELECT id, baby_name, due_date FROM users WHERE baby_name IS NOT NULL AND baby_name != ""')
+        users_with_baby = c.fetchall()
+        for uid, baby_name, due_date in users_with_baby:
+            c.execute('SELECT COUNT(*) FROM children WHERE user_id=?', (uid,))
+            if c.fetchone()[0] == 0:
+                c.execute(
+                    'INSERT INTO children(user_id, name, due_date, created_at) VALUES(?,?,?,CURRENT_TIMESTAMP)',
+                    (uid, baby_name, due_date)
+                )
+                child_id = c.lastrowid
+                # Assign all existing records to this child
+                for tbl in _tables_needing_child_id:
+                    c.execute(f'UPDATE {tbl} SET child_id=? WHERE user_id=? AND child_id IS NULL',
+                              (child_id, uid))
+
         conn.commit()

@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional
 from auth import get_current_user
-from database import get_db
+from database import get_db, verify_child_owner
 
 router = APIRouter(prefix="/api")
 
@@ -13,18 +13,21 @@ class HospitalBody(BaseModel):
     hospital_name: str
     department: Optional[str] = None
     memo: Optional[str] = None
+    child_id: Optional[int] = None
 
 
 @router.post('/hospital')
 def create_hospital(body: HospitalBody, user: dict = Depends(get_current_user)):
     uid = user['uid']
+    if body.child_id:
+        verify_child_owner(body.child_id, uid)
     now = datetime.utcnow().isoformat()
     with get_db() as conn:
         c = conn.cursor()
         c.execute(
-            '''INSERT INTO hospital_records(user_id, date, hospital_name, department, memo, created_at)
-               VALUES(?,?,?,?,?,?)''',
-            (uid, body.date, body.hospital_name, body.department, body.memo, now)
+            '''INSERT INTO hospital_records(user_id, date, hospital_name, department, memo, created_at, child_id)
+               VALUES(?,?,?,?,?,?,?)''',
+            (uid, body.date, body.hospital_name, body.department, body.memo, now, body.child_id)
         )
         rid = c.lastrowid
         conn.commit()
@@ -33,16 +36,18 @@ def create_hospital(body: HospitalBody, user: dict = Depends(get_current_user)):
 
 
 @router.get('/hospital')
-def list_hospital(user: dict = Depends(get_current_user)):
+def list_hospital(child_id: int = None, user: dict = Depends(get_current_user)):
     uid = user['uid']
     with get_db() as conn:
         c = conn.cursor()
-        c.execute(
-            '''SELECT id, date, hospital_name, department, memo
-               FROM hospital_records WHERE user_id=?
-               ORDER BY date DESC, id DESC''',
-            (uid,)
-        )
+        sql = '''SELECT id, date, hospital_name, department, memo
+                 FROM hospital_records WHERE user_id=?'''
+        params = [uid]
+        if child_id:
+            sql += ' AND child_id=?'
+            params.append(child_id)
+        sql += ' ORDER BY date DESC, id DESC'
+        c.execute(sql, params)
         rows = c.fetchall()
     return [
         {'id': r[0], 'date': r[1], 'hospital_name': r[2], 'department': r[3], 'memo': r[4]}

@@ -3,18 +3,19 @@ import { fetchGallery } from '../api'
 import { getUploadUrl } from '../utils/url'
 import './Gallery.css'
 
-export default function Gallery({ token, onNavigate }) {
+export default function Gallery({ token, onNavigate, activeChildId }) {
   const [images, setImages] = useState([])
   const [loading, setLoading] = useState(true)
   const [lightbox, setLightbox] = useState(null)
 
   useEffect(() => {
     if (!token) return
-    fetchGallery(token)
+    setLoading(true)
+    fetchGallery(token, activeChildId)
       .then(setImages)
       .catch(() => {})
       .finally(() => setLoading(false))
-  }, [token])
+  }, [token, activeChildId])
 
   if (loading) return <div className="gallery__empty">불러오는 중...</div>
   if (images.length === 0) {

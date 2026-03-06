@@ -2,17 +2,18 @@ import { useState, useEffect } from 'react'
 import { fetchTimeline } from '../api'
 import './EventTimeline.css'
 
-export default function EventTimeline({ token, onNavigate }) {
+export default function EventTimeline({ token, onNavigate, activeChildId }) {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!token) return
-    fetchTimeline(token)
+    setLoading(true)
+    fetchTimeline(token, activeChildId)
       .then(setEvents)
       .catch(() => {})
       .finally(() => setLoading(false))
-  }, [token])
+  }, [token, activeChildId])
 
   if (loading) return <div className="event-timeline__empty">불러오는 중...</div>
 

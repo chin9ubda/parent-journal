@@ -6,7 +6,7 @@ import cv2
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends
 from pydantic import BaseModel
 from auth import get_current_user, get_current_user_form
-from database import get_db
+from database import get_db, verify_child_owner
 from config import UPLOAD_DIR, IMAGE_EXTENSIONS
 from test_analyzer import analyze_test, recalculate_at_positions, _draw_annotations
 
@@ -20,9 +20,12 @@ async def create_test(
     file: UploadFile = File(...),
     date: str = Form(None),
     pre_cropped: str = Form(None),
+    child_id: int = Form(None),
     user: dict = Depends(get_current_user_form)
 ):
     uid = user['uid']
+    if child_id:
+        verify_child_owner(child_id, uid)
     dt = date or datetime.utcnow().isoformat()[:10]
 
     ext = os.path.splitext(file.filename)[1].lower()
@@ -47,7 +50,7 @@ async def create_test(
         c = conn.cursor()
         c.execute(
             'INSERT INTO test_analyses(user_id, date, original_path, cropped_path, '
-            'c_intensity, t_intensity, ratio, c_line_x, t_line_x, created_at) VALUES(?,?,?,?,?,?,?,?,?,?)',
+            'c_intensity, t_intensity, ratio, c_line_x, t_line_x, created_at, child_id) VALUES(?,?,?,?,?,?,?,?,?,?,?)',
             (
                 uid, dt,
                 f'_tests/{test_id}/{original_name}',
@@ -58,6 +61,7 @@ async def create_test(
                 result.get('c_line_x'),
                 result.get('t_line_x'),
                 datetime.utcnow().isoformat(),
+                child_id,
             )
         )
         db_id = c.lastrowid
@@ -80,15 +84,18 @@ async def create_test(
 
 
 @router.get('/tests')
-def list_tests(user: dict = Depends(get_current_user)):
+def list_tests(child_id: int = None, user: dict = Depends(get_current_user)):
     uid = user['uid']
     with get_db() as conn:
         c = conn.cursor()
-        c.execute(
-            'SELECT id, date, original_path, cropped_path, c_intensity, t_intensity, ratio, c_line_x, t_line_x '
-            'FROM test_analyses WHERE user_id=? ORDER BY date DESC, id DESC',
-            (uid,)
-        )
+        sql = ('SELECT id, date, original_path, cropped_path, c_intensity, t_intensity, ratio, c_line_x, t_line_x '
+               'FROM test_analyses WHERE user_id=?')
+        params = [uid]
+        if child_id:
+            sql += ' AND child_id=?'
+            params.append(child_id)
+        sql += ' ORDER BY date DESC, id DESC'
+        c.execute(sql, params)
         rows = c.fetchall()
     return [
         {

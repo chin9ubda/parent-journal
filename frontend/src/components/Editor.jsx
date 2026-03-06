@@ -17,7 +17,7 @@ const PROMPTS = [
   '태동을 느꼈나요? 어떤 느낌이었나요?',
 ]
 
-export default function Editor({ token, onDone, editId, initialDate }) {
+export default function Editor({ token, onDone, editId, initialDate, activeChildId }) {
   const [date, setDate] = useState(initialDate || todayKey())
   const [body, setBody] = useState('')
   const [files, setFiles] = useState([])
@@ -75,6 +75,7 @@ export default function Editor({ token, onDone, editId, initialDate }) {
       if (isTimeline && timelineLabel.trim()) {
         form.append('timeline_label', timelineLabel.trim())
       }
+      if (activeChildId) form.append('child_id', activeChildId)
       for (const f of files) form.append('files', f)
 
       if (editId) {

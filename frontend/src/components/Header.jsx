@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './Header.css'
 
-export default function Header({ view, onNavigate, babyName, dueDate, onOpenSettings }) {
+export default function Header({ view, onNavigate, babyName, dueDate, children, activeChildId, onSwitchChild, onOpenSettings }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [childDropdown, setChildDropdown] = useState(false)
+  const dropdownRef = useRef(null)
 
   useEffect(() => {
     if (menuOpen) {
@@ -10,9 +12,22 @@ export default function Header({ view, onNavigate, babyName, dueDate, onOpenSett
       return () => { document.body.style.overflow = '' }
     }
   }, [menuOpen])
+
+  useEffect(() => {
+    if (!childDropdown) return
+    function handleClick(e) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setChildDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [childDropdown])
+
   const title = babyName ? `${babyName}의 일기` : '육아 일기'
   const dday = dueDate ? calcDday(dueDate) : null
   const weekInfo = dueDate ? calcWeek(dueDate) : null
+  const hasMultipleChildren = children && children.length > 1
 
   const icons = {
     dashboard: (
@@ -96,11 +111,43 @@ export default function Header({ view, onNavigate, babyName, dueDate, onOpenSett
     setMenuOpen(false)
   }
 
+  function handleSwitchChild(childId) {
+    onSwitchChild(childId)
+    setChildDropdown(false)
+  }
+
   return (
     <>
       <div className="header">
         <div className="header__left">
-          <div className="header__title" onClick={() => onNavigate('dashboard')}>{title}</div>
+          {hasMultipleChildren ? (
+            <div className="header__child-switcher" ref={dropdownRef}>
+              <button
+                className="header__title header__title--dropdown"
+                onClick={() => setChildDropdown(v => !v)}
+              >
+                {title}
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 4 }}>
+                  <path d="M3 5l3 3 3-3"/>
+                </svg>
+              </button>
+              {childDropdown && (
+                <div className="header__child-dropdown">
+                  {children.map(child => (
+                    <button
+                      key={child.id}
+                      className={`header__child-option ${child.id === activeChildId ? 'header__child-option--active' : ''}`}
+                      onClick={() => handleSwitchChild(child.id)}
+                    >
+                      {child.name}의 일기
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="header__title" onClick={() => onNavigate('dashboard')}>{title}</div>
+          )}
           {(dday || weekInfo) && (
             <div className="header__sub">
               {weekInfo && <span className="header__week">{weekInfo}</span>}
