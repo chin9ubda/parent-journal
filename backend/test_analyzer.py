@@ -223,20 +223,23 @@ def _find_search_region(gray, color_img=None):
 
 def _get_color_signal(cropped):
     """
-    Extract a color-based signal that highlights pink/red lines.
+    Extract a redness signal that highlights pink/red lines.
 
-    Uses HSV saturation + inverted green channel for maximum sensitivity
-    to faint pink/red lines on a white background.
-    Returns a single-channel numpy array (higher = more colored).
+    Uses (R - G) difference as the primary signal. Shadows darken all channels
+    equally so R-G stays ~0, while pink/red lines have R >> G.
+    Blue channel difference (R - B) adds sensitivity for pure-red tones.
+    Returns a single-channel numpy array (higher = more red/pink).
     """
-    hsv = cv2.cvtColor(cropped, cv2.COLOR_BGR2HSV)
-    sat = hsv[:, :, 1].astype(float)
+    b, g, r = cropped[:, :, 0].astype(float), cropped[:, :, 1].astype(float), cropped[:, :, 2].astype(float)
 
-    # Inverted green channel: pink/red lines have low green relative to red/blue
-    g_inv = 255.0 - cropped[:, :, 1].astype(float)
+    # Primary: red minus green (pink/red lines have R >> G)
+    rg_diff = r - g
 
-    # Combine: saturation is the primary signal, green-inverse adds sensitivity
-    signal = sat * 0.6 + g_inv * 0.4
+    # Secondary: red minus blue (catches pure-red tones where B is also low)
+    rb_diff = r - b
+
+    # Combine: R-G is the dominant signal, R-B adds minor sensitivity
+    signal = np.clip(rg_diff * 0.7 + rb_diff * 0.3, 0, None)
     return signal
 
 
@@ -244,8 +247,8 @@ def _analyze_lines(cropped):
     """
     Analyze the cropped stick image to find C and T lines.
 
-    Uses color (saturation + inverted green) instead of grayscale brightness
-    for much better sensitivity to faint pink/red lines.
+    Uses redness signal (R-G difference) to detect pink/red lines
+    while being robust against shadows (which darken all channels equally).
 
     1. Find the search region (between MAX and HCG pad)
     2. Scan columns for the two most colored vertical bands
@@ -274,7 +277,7 @@ def _analyze_lines(cropped):
             'c_intensity': None, 't_intensity': None, 'ratio': None,
         }
 
-    # Step 2: Background = low signal (white areas have near-zero saturation)
+    # Step 2: Background = low redness signal (white areas have R≈G so signal≈0)
     bg_level = float(np.percentile(window, 10))
 
     # Column means within the test window
@@ -286,19 +289,23 @@ def _analyze_lines(cropped):
         kernel_size += 1
     smoothed = np.convolve(col_means, np.ones(kernel_size) / kernel_size, mode='same')
 
-    # Color strength relative to background
+    # Redness strength relative to background
     strength = smoothed - bg_level
     strength = np.clip(strength, 0, None)
 
     band_w = max(2, win_w // 40)
+
+    # Dynamic normalization: use 95th percentile of signal as reference max
+    # This adapts to the actual redness range in each image
+    signal_max = float(np.percentile(window, 95))
+    norm_range = max(1.0, signal_max - bg_level)
 
     def measure_strength(x):
         band = window[:, max(0, x - band_w):min(win_w, x + band_w)]
         if band.size == 0:
             return 0.0
         mean_val = float(np.mean(band))
-        # Normalize to 0~100 scale (saturation range is 0~255)
-        return max(0, (mean_val - bg_level) / max(1, 255 - bg_level) * 100)
+        return max(0, (mean_val - bg_level) / norm_range * 100)
 
     # Step 3: Find C line first (strongest colored band in right half)
     # Exclude rightmost 5% to avoid HCG pad boundary artifacts
@@ -349,7 +356,7 @@ def _analyze_lines(cropped):
 
 
 def recalculate_at_positions(cropped_img, c_x, t_x):
-    """Recalculate intensity at user-specified C/T line positions using color signal."""
+    """Recalculate intensity at user-specified C/T line positions using redness signal."""
     h, w = cropped_img.shape[:2]
     y_start = int(h * 0.40)
     y_end = int(h * 0.60)
@@ -360,13 +367,15 @@ def recalculate_at_positions(cropped_img, c_x, t_x):
 
     bg_level = float(np.percentile(window, 10))
     band_w = max(2, win_w // 40)
+    signal_max = float(np.percentile(window, 95))
+    norm_range = max(1.0, signal_max - bg_level)
 
     def measure(x):
         band = window[:, max(0, x - band_w):min(win_w, x + band_w)]
         if band.size == 0:
             return 0.0
         mean_val = float(np.mean(band))
-        return max(0, (mean_val - bg_level) / max(1, 255 - bg_level) * 100)
+        return max(0, (mean_val - bg_level) / norm_range * 100)
 
     c_intensity = round(measure(c_x), 1)
     t_intensity = round(measure(t_x), 1)
