@@ -27,4 +27,5 @@ jobs:
         run: |
           docker stop pj_backend pj_frontend || true
           docker rm pj_backend pj_frontend || true
+          chown -R 1000:1000 /data/docker/parent-journal/data
           cd /data/docker/parent-journal && docker compose pull && docker compose up -d
