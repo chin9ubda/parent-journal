@@ -29,8 +29,10 @@ def analyze_test(image_path: str, output_dir: str, pre_cropped: bool = False) ->
     os.makedirs(output_dir, exist_ok=True)
 
     if pre_cropped:
-        # User already cropped the image in the editor — skip auto detection
+        # User already cropped — use original as-is (no re-encoding)
         cropped = img
+        cropped_filename = os.path.basename(image_path)
+        cropped_path = image_path
     else:
         # Try auto-detect the test stick
         cropped = _detect_and_crop_stick(img)
@@ -41,15 +43,15 @@ def analyze_test(image_path: str, output_dir: str, pre_cropped: bool = False) ->
             margin_x, margin_y = int(w * 0.1), int(h * 0.1)
             cropped = img[margin_y:h - margin_y, margin_x:w - margin_x]
 
-    # Ensure stick is oriented horizontally (wider than tall)
-    h, w = cropped.shape[:2]
-    if h > w:
-        cropped = cv2.rotate(cropped, cv2.ROTATE_90_CLOCKWISE)
+        # Ensure stick is oriented horizontally (wider than tall)
+        h, w = cropped.shape[:2]
+        if h > w:
+            cropped = cv2.rotate(cropped, cv2.ROTATE_90_CLOCKWISE)
 
-    # Save cropped image
-    cropped_filename = 'cropped.jpg'
-    cropped_path = os.path.join(output_dir, cropped_filename)
-    cv2.imwrite(cropped_path, cropped)
+        # Save cropped image
+        cropped_filename = 'cropped.jpg'
+        cropped_path = os.path.join(output_dir, cropped_filename)
+        cv2.imwrite(cropped_path, cropped)
 
     # Analyze lines
     result = _analyze_lines(cropped)

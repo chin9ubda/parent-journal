@@ -118,9 +118,9 @@
 }
 
 .pregnancy-info__milestones-arrow {
-  font-size: 12px;
   color: var(--color-text-muted);
   transition: transform 0.2s ease;
+  flex-shrink: 0;
 }
 
 .pregnancy-info__milestones-arrow--open {

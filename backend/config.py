@@ -1,6 +1,6 @@
 import os
 
-DATA_DIR = '/data'
+DATA_DIR = os.environ.get('PJ_DATA_DIR', '/data')
 DB_PATH = os.path.join(DATA_DIR, 'journal.db')
 UPLOAD_DIR = os.path.join(DATA_DIR, 'uploads')
 SECRET = os.environ.get('PJ_SECRET', 'devsecret')

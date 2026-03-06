@@ -129,7 +129,9 @@ export default function PregnancyInfo({ dueDate }) {
           <div className="pregnancy-info__milestones">
             <button className="pregnancy-info__milestones-toggle" onClick={() => setOpen(o => !o)}>
               <span className="pregnancy-info__milestones-title">이번 시기 체크</span>
-              <span className={`pregnancy-info__milestones-arrow ${open ? 'pregnancy-info__milestones-arrow--open' : ''}`}>&#9662;</span>
+              <svg className={`pregnancy-info__milestones-arrow ${open ? 'pregnancy-info__milestones-arrow--open' : ''}`} width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 6l4 4 4-4"/>
+              </svg>
             </button>
             {open && (
               <div className="pregnancy-info__milestones-body">
