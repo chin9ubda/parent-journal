@@ -56,3 +56,44 @@ export function cropFromElement(imgEl, crop) {
     canvas.toBlob(blob => resolve(blob), 'image/jpeg', 0.92)
   })
 }
+
+/**
+ * Rotate + crop in a single canvas pass.
+ *
+ * The image is CSS-rotated for preview, but ReactCrop's crop coordinates
+ * are in the img element's unrotated layout space. This function renders
+ * exactly what the user sees through the crop box by:
+ *   1. Creating a canvas sized to the crop region (at natural resolution)
+ *   2. Positioning the rotation center relative to the crop box
+ *   3. Drawing the original image rotated around that center
+ *
+ * @param {string} src - original image URL
+ * @param {number} degrees - rotation angle
+ * @param {Object} crop - {x, y, width, height} in display pixels
+ * @param {number} displayW - img element display width
+ * @param {number} displayH - img element display height
+ * @returns {Promise<Blob>} cropped JPEG blob
+ */
+export async function rotateAndCrop(src, degrees, crop, displayW, displayH) {
+  const img = await loadImage(src)
+  const scaleX = img.naturalWidth / displayW
+  const scaleY = img.naturalHeight / displayH
+  const rad = (degrees * Math.PI) / 180
+
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.round(crop.width * scaleX)
+  canvas.height = Math.round(crop.height * scaleY)
+  const ctx = canvas.getContext('2d')
+
+  // Image center position relative to the crop box top-left, in natural pixels
+  const cx = (displayW / 2 - crop.x) * scaleX
+  const cy = (displayH / 2 - crop.y) * scaleY
+
+  ctx.translate(cx, cy)
+  ctx.rotate(rad)
+  ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2)
+
+  return new Promise(resolve => {
+    canvas.toBlob(blob => resolve(blob), 'image/jpeg', 0.92)
+  })
+}

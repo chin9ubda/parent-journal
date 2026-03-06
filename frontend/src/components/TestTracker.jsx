@@ -3,7 +3,7 @@ import ReactCrop from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
 import { uploadTest, fetchTests, deleteTest, adjustTestLines, updateTestDate } from '../api'
 import { getUploadUrl } from '../utils/url'
-import { rotateImage, cropFromElement } from '../utils/cropImage'
+import { rotateImage, cropFromElement, rotateAndCrop } from '../utils/cropImage'
 import './TestTracker.css'
 
 export default function TestTracker({ token, activeChildId }) {
@@ -75,35 +75,30 @@ export default function TestTracker({ token, activeChildId }) {
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
-  async function applyRotation() {
-    if (rotation === 0) return
-    const rotatedUrl = await rotateImage(originalSrc, rotation)
-    URL.revokeObjectURL(originalSrc)
-    setOriginalSrc(rotatedUrl)
-    setRotation(0)
-    setCrop(undefined)
-    setCompletedCrop(null)
-  }
-
   async function handleCropConfirm() {
     if (uploading) return
     setUploading(true)
     try {
-      // 회전이 남아있으면 먼저 적용
-      let src = originalSrc
-      if (rotation !== 0) {
-        src = await rotateImage(originalSrc, rotation)
-      }
-
+      const hasCrop = completedCrop && completedCrop.width > 0 && completedCrop.height > 0 && editorImgRef.current
       let blob
-      if (completedCrop && completedCrop.width > 0 && completedCrop.height > 0 && editorImgRef.current) {
+
+      if (hasCrop && rotation !== 0) {
+        // 회전 + 크롭을 한번에 canvas 처리
+        blob = await rotateAndCrop(
+          originalSrc, rotation, completedCrop,
+          editorImgRef.current.width, editorImgRef.current.height
+        )
+      } else if (hasCrop) {
         blob = await cropFromElement(editorImgRef.current, completedCrop)
-      } else {
+      } else if (rotation !== 0) {
+        const src = await rotateImage(originalSrc, rotation)
         const resp = await fetch(src)
         blob = await resp.blob()
+        URL.revokeObjectURL(src)
+      } else {
+        const resp = await fetch(originalSrc)
+        blob = await resp.blob()
       }
-
-      if (src !== originalSrc) URL.revokeObjectURL(src)
 
       const file = new File([blob], 'cropped.jpg', { type: 'image/jpeg' })
       await uploadTest(token, file, date, true, activeChildId)
@@ -442,24 +437,15 @@ export default function TestTracker({ token, activeChildId }) {
       {originalSrc && (
         <div className="test-editor-overlay">
           <div className="test-editor-crop-area">
-            {rotation !== 0 ? (
-              <div className="test-editor-rotate-wrapper" style={{ transform: `rotate(${rotation}deg)` }}>
-                <img
-                  src={originalSrc}
-                  alt=""
-                  className="test-editor-img"
-                />
-              </div>
-            ) : (
-              <ReactCrop crop={crop} onChange={setCrop} onComplete={setCompletedCrop}>
-                <img
-                  ref={editorImgRef}
-                  src={originalSrc}
-                  alt=""
-                  className="test-editor-img"
-                />
-              </ReactCrop>
-            )}
+            <ReactCrop crop={crop} onChange={setCrop} onComplete={setCompletedCrop}>
+              <img
+                ref={editorImgRef}
+                src={originalSrc}
+                alt=""
+                className="test-editor-img"
+                style={rotation !== 0 ? { transform: `rotate(${rotation}deg)` } : undefined}
+              />
+            </ReactCrop>
           </div>
           <div className="test-editor-toolbar">
             <button className="test-editor-btn" onClick={handleEditorClose}>취소</button>
@@ -473,8 +459,6 @@ export default function TestTracker({ token, activeChildId }) {
                   step={1}
                   value={rotation}
                   onChange={e => setRotation(Number(e.target.value))}
-                  onPointerUp={applyRotation}
-                  onTouchEnd={applyRotation}
                   className="test-editor-slider"
                 />
                 <span className="test-editor-value">{rotation}°</span>
