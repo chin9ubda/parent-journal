@@ -288,12 +288,15 @@ def _analyze_lines(cropped):
 
     band_w = max(2, win_w // 40)
 
+    # Baseline: redness noise floor of white background (10th percentile)
+    bg = float(np.percentile(window, 10))
+
     def measure_redness(x):
-        """Raw mean redness at position x."""
+        """Redness at position x, minus background noise."""
         band = window[:, max(0, x - band_w):min(win_w, x + band_w)]
         if band.size == 0:
             return 0.0
-        return float(np.mean(band))
+        return max(0.0, float(np.mean(band)) - bg)
 
     # Step 2: Find C line (strongest redness in right half)
     right_half_start = win_w // 2
@@ -314,19 +317,18 @@ def _analyze_lines(cropped):
 
     t_local_x = t_search_start + int(np.argmax(smoothed[t_search_start:t_search_end]))
 
-    c_raw = measure_redness(c_local_x)
-    t_raw = measure_redness(t_local_x)
+    c_net = measure_redness(c_local_x)
+    t_net = measure_redness(t_local_x)
 
     # Convert local x back to full image x
     c_x = c_local_x + win_start
     t_x = t_local_x + win_start
 
-    # Normalize: C line = 100, T line relative to C
-    # No background comparison needed — both lines share the same lighting
-    if c_raw > 0.5:
+    # C = 100 기준, T는 C 대비 상대값. 배경 노이즈 제거 후 비교
+    if c_net > 0.5:
         c_intensity = 100.0
-        t_intensity = round(t_raw / c_raw * 100, 1)
-        ratio = round(t_raw / c_raw, 3)
+        t_intensity = round(t_net / c_net * 100, 1)
+        ratio = round(t_net / c_net, 3)
     else:
         c_intensity = 0.0
         t_intensity = 0.0
@@ -355,21 +357,21 @@ def recalculate_at_positions(cropped_img, c_x, t_x):
     win_w = window.shape[1]
 
     band_w = max(2, win_w // 40)
+    bg = float(np.percentile(window, 10))
 
     def measure(x):
         band = window[:, max(0, x - band_w):min(win_w, x + band_w)]
         if band.size == 0:
             return 0.0
-        return float(np.mean(band))
+        return max(0.0, float(np.mean(band)) - bg)
 
-    c_raw = measure(c_x)
-    t_raw = measure(t_x)
+    c_net = measure(c_x)
+    t_net = measure(t_x)
 
-    # C line = 100, T line relative to C
-    if c_raw > 0.5:
+    if c_net > 0.5:
         c_intensity = 100.0
-        t_intensity = round(t_raw / c_raw * 100, 1)
-        ratio = round(t_raw / c_raw, 3)
+        t_intensity = round(t_net / c_net * 100, 1)
+        ratio = round(t_net / c_net, 3)
     else:
         c_intensity = 0.0
         t_intensity = 0.0
