@@ -75,11 +75,21 @@ export default function TestTracker({ token, activeChildId }) {
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
+  async function applyRotation() {
+    if (rotation === 0) return
+    const rotatedUrl = await rotateImage(originalSrc, rotation)
+    URL.revokeObjectURL(originalSrc)
+    setOriginalSrc(rotatedUrl)
+    setRotation(0)
+    setCrop(undefined)
+    setCompletedCrop(null)
+  }
+
   async function handleCropConfirm() {
     if (uploading) return
     setUploading(true)
     try {
-      // 1) 회전이 필요하면 canvas로 회전 처리
+      // 회전이 남아있으면 먼저 적용
       let src = originalSrc
       if (rotation !== 0) {
         src = await rotateImage(originalSrc, rotation)
@@ -87,10 +97,8 @@ export default function TestTracker({ token, activeChildId }) {
 
       let blob
       if (completedCrop && completedCrop.width > 0 && completedCrop.height > 0 && editorImgRef.current) {
-        // 2) CSS 회전 미리보기 상태에서의 crop 좌표를 실제 회전된 이미지에 적용
         blob = await cropFromElement(editorImgRef.current, completedCrop)
       } else {
-        // No crop — send the rotated full image
         const resp = await fetch(src)
         blob = await resp.blob()
       }
@@ -434,7 +442,15 @@ export default function TestTracker({ token, activeChildId }) {
       {originalSrc && (
         <div className="test-editor-overlay">
           <div className="test-editor-crop-area">
-            <div className="test-editor-rotate-wrapper" style={{ transform: `rotate(${rotation}deg)` }}>
+            {rotation !== 0 ? (
+              <div className="test-editor-rotate-wrapper" style={{ transform: `rotate(${rotation}deg)` }}>
+                <img
+                  src={originalSrc}
+                  alt=""
+                  className="test-editor-img"
+                />
+              </div>
+            ) : (
               <ReactCrop crop={crop} onChange={setCrop} onComplete={setCompletedCrop}>
                 <img
                   ref={editorImgRef}
@@ -443,7 +459,7 @@ export default function TestTracker({ token, activeChildId }) {
                   className="test-editor-img"
                 />
               </ReactCrop>
-            </div>
+            )}
           </div>
           <div className="test-editor-toolbar">
             <button className="test-editor-btn" onClick={handleEditorClose}>취소</button>
@@ -457,6 +473,8 @@ export default function TestTracker({ token, activeChildId }) {
                   step={1}
                   value={rotation}
                   onChange={e => setRotation(Number(e.target.value))}
+                  onPointerUp={applyRotation}
+                  onTouchEnd={applyRotation}
                   className="test-editor-slider"
                 />
                 <span className="test-editor-value">{rotation}°</span>
