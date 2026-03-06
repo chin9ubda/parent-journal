@@ -222,8 +222,8 @@ export default function TestTracker({ token, activeChildId }) {
       {/* Progress chart — line chart */}
       {tests.length > 1 && (() => {
         const sorted = [...tests].reverse()
-        const pad = { top: 16, bottom: 28, left: 30, right: 30 }
-        const chartH = 120
+        const pad = { top: 28, bottom: 28, left: 30, right: 30 }
+        const chartH = 132
         const chartW = Math.max(sorted.length * 56, 280)
         const plotH = chartH - pad.top - pad.bottom
         const plotW = chartW - pad.left - pad.right
