@@ -5,7 +5,7 @@
 
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BACKEND_PORT=${DEV_BACKEND_PORT:-8001}
-export PJ_DATA_DIR="${PJ_DATA_DIR:-/data/docker/parent-journal/data}"
+export PJ_DATA_DIR="${PJ_DATA_DIR:-/data}"
 
 cleanup() {
   kill $BACKEND_PID $FRONTEND_PID 2>/dev/null

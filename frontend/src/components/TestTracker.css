@@ -498,6 +498,11 @@
   padding: 8px;
 }
 
+.test-editor-rotate-wrapper {
+  transition: none;
+  will-change: transform;
+}
+
 .test-editor-img {
   max-width: 100%;
   max-height: 100%;

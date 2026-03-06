@@ -18,16 +18,14 @@ export default function TestTracker({ token, activeChildId }) {
   const [dragging, setDragging] = useState(null)
   const [imgScale, setImgScale] = useState(1)
   const [adjusting, setAdjusting] = useState(false)
-  const [showGuides, setShowGuides] = useState(true)
+  const [showGuides, setShowGuides] = useState(false)
   const [showAll, setShowAll] = useState(false)
   const [originalSrc, setOriginalSrc] = useState(null)
-  const [rotatedSrc, setRotatedSrc] = useState(null)
   const [rotation, setRotation] = useState(0)
   const [crop, setCrop] = useState()
   const [completedCrop, setCompletedCrop] = useState(null)
   const fileInputRef = useRef(null)
   const editorImgRef = useRef(null)
-  const rotateTimerRef = useRef(null)
   const imgRef = useRef(null)
   const chartScrollRef = useRef(null)
 
@@ -49,7 +47,6 @@ export default function TestTracker({ token, activeChildId }) {
     if (!file) return
     const url = URL.createObjectURL(file)
     setOriginalSrc(url)
-    setRotatedSrc(url)
     setRotation(0)
     setCrop(undefined)
     setCompletedCrop(null)
@@ -69,33 +66,10 @@ export default function TestTracker({ token, activeChildId }) {
     if (el) el.scrollLeft = el.scrollWidth
   }, [tests])
 
-  // Debounced rotation — generates a rotated image 200ms after slider stops
-  useEffect(() => {
-    if (!originalSrc) return
-    if (rotation === 0) {
-      setRotatedSrc(prev => {
-        if (prev && prev !== originalSrc) URL.revokeObjectURL(prev)
-        return originalSrc
-      })
-      return
-    }
-    clearTimeout(rotateTimerRef.current)
-    rotateTimerRef.current = setTimeout(() => {
-      rotateImage(originalSrc, rotation).then(url => {
-        setRotatedSrc(prev => {
-          if (prev && prev !== originalSrc) URL.revokeObjectURL(prev)
-          return url
-        })
-      })
-    }, 200)
-    return () => clearTimeout(rotateTimerRef.current)
-  }, [originalSrc, rotation])
-
   function handleEditorClose() {
     if (originalSrc) URL.revokeObjectURL(originalSrc)
-    if (rotatedSrc && rotatedSrc !== originalSrc) URL.revokeObjectURL(rotatedSrc)
     setOriginalSrc(null)
-    setRotatedSrc(null)
+    setRotation(0)
     setCrop(undefined)
     setCompletedCrop(null)
     if (fileInputRef.current) fileInputRef.current.value = ''
@@ -105,14 +79,24 @@ export default function TestTracker({ token, activeChildId }) {
     if (uploading) return
     setUploading(true)
     try {
+      // 1) 회전이 필요하면 canvas로 회전 처리
+      let src = originalSrc
+      if (rotation !== 0) {
+        src = await rotateImage(originalSrc, rotation)
+      }
+
       let blob
       if (completedCrop && completedCrop.width > 0 && completedCrop.height > 0 && editorImgRef.current) {
+        // 2) CSS 회전 미리보기 상태에서의 crop 좌표를 실제 회전된 이미지에 적용
         blob = await cropFromElement(editorImgRef.current, completedCrop)
       } else {
-        // No crop drawn — send the (rotated) full image
-        const resp = await fetch(rotatedSrc)
+        // No crop — send the rotated full image
+        const resp = await fetch(src)
         blob = await resp.blob()
       }
+
+      if (src !== originalSrc) URL.revokeObjectURL(src)
+
       const file = new File([blob], 'cropped.jpg', { type: 'image/jpeg' })
       await uploadTest(token, file, date, true, activeChildId)
       await loadTests()
@@ -302,7 +286,7 @@ export default function TestTracker({ token, activeChildId }) {
                   className={`test-tracker__guide-btn ${showGuides ? '' : 'test-tracker__guide-btn--off'}`}
                   onClick={() => setShowGuides(v => !v)}
                 >
-                  {showGuides ? '가이드 숨기기' : '가이드 보기'}
+                  {showGuides ? '가이드 끄기' : '라인 조절'}
                 </button>
               )}
               <button className="test-tracker__delete-btn" onClick={() => handleDelete(selected.id)}>삭제</button>
@@ -450,16 +434,16 @@ export default function TestTracker({ token, activeChildId }) {
       {originalSrc && (
         <div className="test-editor-overlay">
           <div className="test-editor-crop-area">
-            {rotatedSrc && (
+            <div className="test-editor-rotate-wrapper" style={{ transform: `rotate(${rotation}deg)` }}>
               <ReactCrop crop={crop} onChange={setCrop} onComplete={setCompletedCrop}>
                 <img
                   ref={editorImgRef}
-                  src={rotatedSrc}
+                  src={originalSrc}
                   alt=""
                   className="test-editor-img"
                 />
               </ReactCrop>
-            )}
+            </div>
           </div>
           <div className="test-editor-toolbar">
             <button className="test-editor-btn" onClick={handleEditorClose}>취소</button>

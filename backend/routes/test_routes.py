@@ -103,7 +103,7 @@ def list_tests(child_id: int = None, user: dict = Depends(get_current_user)):
             'date': r[1],
             'original_url': f'/uploads/{r[2]}' if r[2] else None,
             'cropped_url': f'/uploads/{r[3]}' if r[3] else None,
-            'annotated_url': f'/uploads/{r[3]}'.replace('cropped', 'annotated') if r[3] else None,
+            'annotated_url': f'/uploads/{os.path.dirname(r[3])}/annotated.jpg' if r[3] else None,
             'c_intensity': r[4],
             't_intensity': r[5],
             'ratio': r[6],
@@ -170,7 +170,7 @@ def adjust_lines(tid: int, body: LineAdjust, user: dict = Depends(get_current_us
             'window_x': None,
         }
         annotated = _draw_annotations(img, ann_result)
-        annotated_path = cropped_path.replace('cropped', 'annotated')
+        annotated_path = os.path.join(os.path.dirname(cropped_path), 'annotated.jpg')
         cv2.imwrite(annotated_path, annotated)
 
         c.execute(
