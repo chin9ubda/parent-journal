@@ -213,6 +213,27 @@
   padding-left: 0;
 }
 
+.care-tracker__card-actions {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.care-tracker__card-revisit {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.care-tracker__card-revisit:hover {
+  color: var(--color-primary-hover);
+}
+
 .care-tracker__card-delete {
   background: none;
   border: none;

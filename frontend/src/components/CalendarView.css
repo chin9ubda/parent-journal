@@ -108,6 +108,19 @@
   flex-shrink: 0;
 }
 
+.calendar__cell-pw {
+  font-size: 8px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  opacity: 0.6;
+  margin-left: 2px;
+}
+
+.calendar__cell--today .calendar__cell-pw {
+  color: var(--color-primary);
+  opacity: 0.7;
+}
+
 .calendar__cell-milestone {
   font-size: 8px;
   font-weight: 700;

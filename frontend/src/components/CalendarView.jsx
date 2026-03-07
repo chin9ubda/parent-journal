@@ -20,6 +20,20 @@ function buildMilestones(dueDate) {
   return milestones
 }
 
+function getPregnancyWeek(dueDate, dateKey) {
+  if (!dueDate) return null
+  const due = new Date(dueDate + 'T00:00:00')
+  const target = new Date(dateKey + 'T00:00:00')
+  if (target > due) return null
+  const start = new Date(due)
+  start.setDate(start.getDate() - 280)
+  const elapsed = Math.floor((target - start) / (1000 * 60 * 60 * 24))
+  const week = Math.floor(elapsed / 7)
+  const day = elapsed % 7
+  if (week < 0 || day < 0) return null
+  return `${week}/${day}`
+}
+
 export default function CalendarView({ entriesByDate, onOpenDate, dueDate }) {
   const [yearMonth, setYearMonth] = useState(() => {
     const d = new Date()
@@ -85,7 +99,13 @@ export default function CalendarView({ entriesByDate, onOpenDate, dueDate }) {
             >
               {cell.inMonth && (
                 <>
-                  <div className="calendar__cell-day">{cell.day}</div>
+                  <div className="calendar__cell-day">
+                    {cell.day}
+                    {(() => {
+                      const pw = getPregnancyWeek(dueDate, cell.key)
+                      return pw ? <span className="calendar__cell-pw">{pw}</span> : null
+                    })()}
+                  </div>
                   {milestones[cell.key] && (
                     <div className="calendar__cell-milestone">{milestones[cell.key]}</div>
                   )}

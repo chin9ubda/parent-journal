@@ -100,11 +100,15 @@ function FeedingPanel({ token, activeChildId }) {
       ])
       setRecords(recs)
       setSummary(sum)
+      if (recs.length > 0 && !editId) {
+        setForm(f => ({ ...f, feeding_type: recs[0].feeding_type || '모유' }))
+      }
     } catch (e) { console.error(e) }
   }
 
   function resetForm() {
-    setForm({ datetime: nowDatetimeLocal(), feeding_type: '모유', amount_ml: '', duration_min: '' })
+    const lastType = records.length > 0 ? records[0].feeding_type || '모유' : '모유'
+    setForm({ datetime: nowDatetimeLocal(), feeding_type: lastType, amount_ml: '', duration_min: '' })
     setEditId(null)
   }
 
@@ -420,7 +424,7 @@ function DiaperPanel({ token, activeChildId }) {
 // ─── Babyfood Panel ─────────────────────────────────
 function BabyfoodPanel({ token, activeChildId }) {
   const [records, setRecords] = useState([])
-  const [form, setForm] = useState({ date: todayStr(), ingredient: '', reaction: 'normal', memo: '' })
+  const [form, setForm] = useState({ datetime: nowDatetimeLocal(), ingredient: '', reaction: 'normal', memo: '' })
   const [editId, setEditId] = useState(null)
   const [saving, setSaving] = useState(false)
 
@@ -433,7 +437,7 @@ function BabyfoodPanel({ token, activeChildId }) {
   }
 
   function resetForm() {
-    setForm({ date: todayStr(), ingredient: '', reaction: 'normal', memo: '' })
+    setForm({ datetime: nowDatetimeLocal(), ingredient: '', reaction: 'normal', memo: '' })
     setEditId(null)
   }
 
@@ -441,7 +445,7 @@ function BabyfoodPanel({ token, activeChildId }) {
     e.preventDefault()
     if (saving || !form.ingredient.trim()) return
     setSaving(true)
-    const data = { date: form.date, ingredient: form.ingredient.trim(), reaction: form.reaction, memo: form.memo.trim() || null, child_id: activeChildId || undefined }
+    const data = { date: form.datetime, ingredient: form.ingredient.trim(), reaction: form.reaction, memo: form.memo.trim() || null, child_id: activeChildId || undefined }
     try {
       if (editId) {
         await updateBabyfoodRecord(token, editId, data)
@@ -463,7 +467,7 @@ function BabyfoodPanel({ token, activeChildId }) {
   function handleEdit(r) {
     if (editId === r.id) { resetForm(); return }
     setEditId(r.id)
-    setForm({ date: r.date, ingredient: r.ingredient, reaction: r.reaction || 'normal', memo: r.memo || '' })
+    setForm({ datetime: r.date, ingredient: r.ingredient, reaction: r.reaction || 'normal', memo: r.memo || '' })
   }
 
   const reactionBadge = { good: '좋음 🟢', normal: '보통 ⚪', allergy: '알레르기 🔴' }
@@ -471,7 +475,7 @@ function BabyfoodPanel({ token, activeChildId }) {
   return (
     <div>
       <form className="care-tracker__form" onSubmit={handleSubmit}>
-        <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} required />
+        <input type="datetime-local" value={form.datetime} onChange={e => setForm({ ...form, datetime: e.target.value })} required />
         <input type="text" placeholder="식재료" value={form.ingredient} onChange={e => setForm({ ...form, ingredient: e.target.value })} required />
         <div className="care-tracker__row">
           <select value={form.reaction} onChange={e => setForm({ ...form, reaction: e.target.value })}>
@@ -497,7 +501,8 @@ function BabyfoodPanel({ token, activeChildId }) {
             onClick={() => handleEdit(r)}
           >
             <div className="care-tracker__card-main">
-              <span className="care-tracker__card-date">{r.date}</span>
+              <span className="care-tracker__card-date">{formatDate(r.date)}</span>
+              <span className="care-tracker__card-time">{formatTime(r.date)}</span>
               <span className="care-tracker__card-ingredient">{r.ingredient}</span>
               <span className={`care-tracker__reaction care-tracker__reaction--${r.reaction || 'normal'}`}>
                 {reactionBadge[r.reaction] || reactionBadge.normal}
@@ -513,9 +518,22 @@ function BabyfoodPanel({ token, activeChildId }) {
 }
 
 // ─── Hospital Panel ─────────────────────────────────
+const DEPARTMENTS = [
+  '소아청소년과',
+  '산부인과',
+  '이비인후과',
+  '피부과',
+  '안과',
+  '치과',
+  '정형외과',
+  '응급실',
+  '영상의학과',
+  '재활의학과',
+]
+
 function HospitalPanel({ token, activeChildId }) {
   const [records, setRecords] = useState([])
-  const [form, setForm] = useState({ date: todayStr(), hospital_name: '', department: '', memo: '' })
+  const [form, setForm] = useState({ date: todayStr(), hospital_name: '', department: '', customDept: false, memo: '' })
   const [editId, setEditId] = useState(null)
   const [saving, setSaving] = useState(false)
 
@@ -528,7 +546,7 @@ function HospitalPanel({ token, activeChildId }) {
   }
 
   function resetForm() {
-    setForm({ date: todayStr(), hospital_name: '', department: '', memo: '' })
+    setForm({ date: todayStr(), hospital_name: '', department: '', customDept: false, memo: '' })
     setEditId(null)
   }
 
@@ -564,15 +582,66 @@ function HospitalPanel({ token, activeChildId }) {
   function handleEdit(r) {
     if (editId === r.id) { resetForm(); return }
     setEditId(r.id)
-    setForm({ date: r.date, hospital_name: r.hospital_name, department: r.department || '', memo: r.memo || '' })
+    const isPreset = DEPARTMENTS.includes(r.department)
+    setForm({ date: r.date, hospital_name: r.hospital_name, department: r.department || '', customDept: !isPreset && !!r.department, memo: r.memo || '' })
+  }
+
+  function handleRevisit(r) {
+    setEditId(null)
+    const isPreset = DEPARTMENTS.includes(r.department)
+    setForm({ date: todayStr(), hospital_name: r.hospital_name, department: r.department || '', customDept: !isPreset && !!r.department, memo: '' })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function handleDeptChange(val) {
+    if (val === '__custom__') {
+      setForm({ ...form, department: '', customDept: true })
+    } else {
+      setForm({ ...form, department: val, customDept: false })
+    }
+  }
+
+  const deptStats = {}
+  for (const r of records) {
+    const d = r.department || '미분류'
+    deptStats[d] = (deptStats[d] || 0) + 1
   }
 
   return (
     <div>
+      {records.length > 0 && (
+        <div className="care-tracker__summary">
+          <span>총 {records.length}회</span>
+          {Object.entries(deptStats)
+            .sort((a, b) => b[1] - a[1])
+            .map(([dept, cnt]) => (
+              <span key={dept}> · {dept} {cnt}회</span>
+            ))
+          }
+        </div>
+      )}
       <form className="care-tracker__form" onSubmit={handleSubmit}>
         <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} required />
-        <input type="text" placeholder="병원명" value={form.hospital_name} onChange={e => setForm({ ...form, hospital_name: e.target.value })} required />
-        <input type="text" placeholder="진료과 (선택)" value={form.department} onChange={e => setForm({ ...form, department: e.target.value })} />
+        <input type="text" placeholder="병원명" list="hospital-names" value={form.hospital_name} onChange={e => setForm({ ...form, hospital_name: e.target.value })} required />
+        <datalist id="hospital-names">
+          {[...new Set(records.map(r => r.hospital_name).filter(Boolean))].map(name => (
+            <option key={name} value={name} />
+          ))}
+        </datalist>
+        <div className="care-tracker__row">
+          {form.customDept ? (
+            <>
+              <input type="text" placeholder="진료과 직접 입력" value={form.department} onChange={e => setForm({ ...form, department: e.target.value })} autoFocus />
+              <button type="button" className="care-tracker__cancel" onClick={() => setForm({ ...form, department: '', customDept: false })}>목록</button>
+            </>
+          ) : (
+            <select value={form.department} onChange={e => handleDeptChange(e.target.value)}>
+              <option value="">진료과 선택</option>
+              {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+              <option value="__custom__">직접 입력...</option>
+            </select>
+          )}
+        </div>
         <textarea placeholder="메모 (선택)" value={form.memo} onChange={e => setForm({ ...form, memo: e.target.value })} rows={2} />
         <div className="care-tracker__form-actions">
           <button type="submit" className="care-tracker__submit" disabled={saving}>
@@ -595,7 +664,10 @@ function HospitalPanel({ token, activeChildId }) {
               {r.department && <span className="care-tracker__badge">{r.department}</span>}
             </div>
             {r.memo && <div className="care-tracker__card-memo">{r.memo}</div>}
-            <button className="care-tracker__card-delete" onClick={e => { e.stopPropagation(); handleDelete(r.id) }}>&times;</button>
+            <div className="care-tracker__card-actions">
+              <button className="care-tracker__card-revisit" onClick={e => { e.stopPropagation(); handleRevisit(r) }} title="재방문">+</button>
+              <button className="care-tracker__card-delete" onClick={e => { e.stopPropagation(); handleDelete(r.id) }}>&times;</button>
+            </div>
           </div>
         ))}
       </div>
